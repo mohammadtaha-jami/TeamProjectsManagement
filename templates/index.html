@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dg: {
+              950: '#07120e',
+              900: '#0a1a14',
+              800: '#0d231c',
+              700: '#123028',
+              600: '#1a4d3d',
+              500: '#228b5c',
+              400: '#34a870',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="{{ url_for('serve_tailwind_bundle') }}"></script>
+  <style>
+    /* Fallback dark-green theme in case custom Tailwind colors are unavailable */
+    body.app-dark-theme {
+      background-color: #07120e;
+      color: #d1fae5;
+    }
+    .app-main-shell {
+      background-color: #07120e;
+    }
+    .app-main-panel {
+      background-color: #0a1a14;
+    }
+    .app-side-panel {
+      background-color: #0a1a14;
+      border-left-color: #1f2937;
+    }
+    .app-main-panel section {
+      border-color: #1f2937 !important;
+      box-shadow: 0 10px 28px -12px rgba(16, 185, 129, 0.26);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .app-main-panel section:hover {
+      border-color: rgba(52, 211, 153, 0.45) !important;
+      box-shadow: 0 18px 40px -18px rgba(34, 197, 94, 0.42);
+      transform: translateY(-1px);
+    }
+    button,
+    .btn-green {
+      box-shadow: 0 8px 22px -10px rgba(34, 197, 94, 0.5);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+    button:hover,
+    .btn-green:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px -12px rgba(16, 185, 129, 0.65);
+      filter: brightness(1.04);
+    }
+    button:active,
+    .btn-green:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px -12px rgba(16, 185, 129, 0.5);
+    }
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-lg {
+      border-color: rgba(31, 41, 55, 0.92);
+    }
+    input,
+    textarea,
+    select {
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.85), 0 4px 12px -8px rgba(34, 197, 94, 0.25);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(16, 185, 129, 0.75) !important;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.22), 0 12px 24px -16px rgba(34, 197, 94, 0.5);
+    }
+    #order-preview-box {
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.85), 0 14px 30px -20px rgba(16, 185, 129, 0.45);
+      border-color: rgba(31, 41, 55, 0.95) !important;
+    }
+  </style>
+</head>
+<body class="app-dark-theme min-h-screen bg-dg-950 text-emerald-50 antialiased">
+  <div class="app-main-shell flex min-h-screen w-full flex-row" dir="ltr">
+    <main class="app-main-panel flex min-h-screen w-[90%] shrink-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 md:p-6" dir="rtl">
+      <section class="rounded-xl border border-neutral-800 bg-neutral-950 p-5 shadow-xl shadow-[0_8px_32px_-6px_rgba(34,197,94,0.14)]">
+        <h2 class="mb-4 text-lg font-semibold tracking-tight text-neutral-200">پلن‌ها</h2>
+        {% if plans %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {% for pl in plans %}
+          {% set pc = pl.get('category_ids', []) %}
+          {% set ps = pl.get('service_ids', []) %}
+          <article class="flex min-h-[11rem] min-w-0 flex-col rounded-2xl border border-neutral-800/90 bg-gradient-to-br from-neutral-900 via-neutral-950 to-black p-4 shadow-lg shadow-[0_12px_40px_-10px_rgba(34,197,94,0.18)] ring-1 ring-emerald-950/30 transition hover:ring-emerald-800/40">
+            <div class="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-neutral-800/90 pb-3">
+              <h3 class="truncate text-base font-bold tracking-tight text-neutral-100">{{ pl.name }}</h3>
+              <span class="shrink-0 rounded-lg bg-emerald-950/60 px-2 py-1 text-[0.65rem] font-medium text-emerald-400/95">پلن</span>
+            </div>
+            <div class="flex min-h-0 flex-1 flex-col gap-2 text-[0.75rem] leading-relaxed text-neutral-400">
+              {% if pc %}
+              <div>
+                <p class="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-wide text-neutral-500">دسته‌ها</p>
+                <ul class="space-y-1">
+                  {% for cid in pc %}
+                  <li class="flex items-start gap-2 text-neutral-300">
+                    <span class="mt-0.5 text-emerald-600/90" aria-hidden="true">✓</span>
+                    <span class="min-w-0 break-words">{{ category_name_map.get(cid, cid) }}</span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+              {% if ps %}
+              <div>
+                <p class="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-wide text-neutral-500">خدمات</p>
+                <ul class="space-y-1">
+                  {% for sid in ps %}
+                  <li class="flex items-start gap-2 text-neutral-300">
+                    <span class="mt-0.5 text-emerald-600/90" aria-hidden="true">✓</span>
+                    <span class="min-w-0 break-words">{{ service_name_map.get(sid, sid) }}</span>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+              {% if not pc and not ps %}
+              <p class="text-neutral-600">بدون دسته یا خدمت ضمیمه</p>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-neutral-500">هنوز پلنی ثبت نشده.</p>
+        {% endif %}
+      </section>
+      <section class="rounded-xl border border-neutral-800 bg-neutral-950 p-5 shadow-xl shadow-[0_8px_32px_-6px_rgba(34,197,94,0.14)]">
+        <h2 class="mb-3 text-lg font-semibold tracking-tight text-neutral-200">دسته‌بندی‌ها</h2>
+        <div class="min-h-[3rem]">
+          {% if category_groups %}
+          <div class="flex flex-wrap items-center gap-2">
+            {% for g in category_groups %}
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-700 bg-black/50 px-3 py-1.5 text-xs font-medium text-neutral-200 shadow-sm shadow-emerald-900/25">
+              {{ g.parent.name }}
+              <span class="rounded-full bg-neutral-800 px-1.5 py-0.5 text-[0.65rem] font-normal text-neutral-400">اصلی</span>
+            </span>
+            {% for ch in g.children %}
+            <span class="inline-flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-900/90 px-2.5 py-1 text-[0.7rem] text-neutral-300 shadow-sm shadow-emerald-950/20">
+              {{ ch.name }}
+              <span class="text-[0.6rem] text-neutral-500">زیردسته</span>
+            </span>
+            {% endfor %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-neutral-500">هنوز دسته‌ای ثبت نشده.</p>
+          {% endif %}
+        </div>
+      </section>
+      <section class="rounded-xl border border-neutral-800 bg-neutral-950 p-5 shadow-xl shadow-[0_8px_32px_-6px_rgba(34,197,94,0.14)]">
+        <h2 class="mb-3 text-lg font-semibold tracking-tight text-neutral-200">خدمات</h2>
+        <div class="min-h-[3rem]">
+          {% if services %}
+          <div class="flex flex-wrap gap-3">
+            {% for s in services %}
+            {% set cids = s.get('category_ids', []) %}
+            <div class="flex max-w-full flex-col gap-1.5 rounded-xl border border-neutral-800 bg-black/35 p-2 shadow-sm shadow-emerald-950/10">
+              <span class="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full border border-neutral-700 bg-black/50 py-1 pl-1 pr-2.5 text-xs text-neutral-200 shadow-sm shadow-emerald-900/25">
+                <span class="rounded-full bg-neutral-800 px-2.5 py-1 font-medium text-neutral-100">{{ s.name }}</span>
+                {% if s.get('price') %}
+                <span class="rounded-full border border-neutral-800 bg-neutral-900/80 px-2 py-0.5 text-[0.65rem] text-neutral-300">{{ s.price }}</span>
+                {% endif %}
+                {% if s.get('description') %}
+                <span class="max-w-[14rem] truncate rounded-full border border-neutral-800 bg-neutral-900/60 px-2 py-0.5 text-[0.65rem] text-neutral-500" title="{{ s.description }}">{{ s.description }}</span>
+                {% endif %}
+                {% for cid in cids %}
+                <span class="rounded-full border border-neutral-800 bg-neutral-900/80 px-2 py-0.5 text-[0.65rem] text-neutral-400">{{ category_name_map.get(cid, cid) }}</span>
+                {% endfor %}
+              </span>
+              <div class="flex items-center gap-3 px-1">
+                <button type="button" onclick="openEditService('{{ s.id }}')" class="text-[0.7rem] font-medium text-emerald-500/90 hover:text-emerald-400 hover:underline">ویرایش</button>
+                <form method="post" action="{{ url_for('remove_service', sid=s.id) }}" class="inline" onsubmit="return confirm('این خدمت حذف شود؟');">
+                  <button type="submit" class="text-[0.7rem] font-medium text-red-400/90 hover:text-red-300 hover:underline">حذف</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-neutral-500">هنوز خدمتی ثبت نشده.</p>
+          {% endif %}
+        </div>
+      </section>
+      <section class="rounded-xl border border-neutral-800 bg-neutral-950 p-5 shadow-xl shadow-[0_8px_32px_-6px_rgba(34,197,94,0.14)]">
+        <h2 class="mb-3 text-lg font-semibold tracking-tight text-neutral-200">مشتریان اخیر</h2>
+        <div class="min-h-[3rem]">
+          {% if customers %}
+          <div class="flex flex-wrap gap-2">
+            {% for c in customers|reverse %}
+            <span class="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full border border-neutral-700 bg-black/50 py-1 pl-1 pr-2.5 text-xs text-neutral-200 shadow-sm shadow-emerald-900/25">
+              <span class="rounded-full bg-neutral-800 px-2.5 py-1 font-medium text-neutral-100">{{ c.name }}</span>
+              {% if c.get('phone') %}
+              <span class="rounded-full border border-neutral-800 bg-neutral-900/80 px-2 py-0.5 text-[0.65rem] text-neutral-400">{{ c.phone }}</span>
+              {% endif %}
+              {% if c.get('address') %}
+              <span class="max-w-[12rem] truncate rounded-full border border-neutral-800 bg-neutral-900/80 px-2 py-0.5 text-[0.65rem] text-neutral-500" title="{{ c.address }}">{{ c.address }}</span>
+              {% endif %}
+            </span>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-neutral-500">هنوز مشتری ثبت نشده.</p>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+    <aside class="app-side-panel flex min-h-screen w-[10%] shrink-0 min-w-0 flex-col gap-3 border-l border-neutral-800 bg-neutral-950 p-2 shadow-[inset_8px_0_24px_-12px_rgba(34,197,94,0.12)] md:p-3" dir="rtl">
+      <button type="button" onclick="openOrderModal()"
+        class="w-full rounded-lg border border-amber-600/50 bg-amber-950/40 px-1 py-2.5 text-center text-[0.65rem] font-semibold leading-tight text-amber-200 shadow-md shadow-black/20 transition hover:bg-amber-950/60 md:text-xs">ثبت سفارش</button>
+      <button type="button" onclick="openModal('modal-service')"
+        class="w-full rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-1 py-2.5 text-center text-[0.65rem] font-medium leading-tight text-white shadow-md shadow-black/30 transition hover:from-dg-400 hover:to-dg-500 md:text-xs">افزودن خدمت</button>
+      <button type="button" onclick="openModal('modal-plan')"
+        class="w-full rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-1 py-2.5 text-center text-[0.65rem] font-medium leading-tight text-white shadow-md shadow-black/30 transition hover:from-dg-400 hover:to-dg-500 md:text-xs">افزودن پلن</button>
+      <button type="button" onclick="openModal('modal-category')"
+        class="w-full rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-1 py-2.5 text-center text-[0.65rem] font-medium leading-tight text-white shadow-md shadow-black/30 transition hover:from-dg-400 hover:to-dg-500 md:text-xs">افزودن دسته</button>
+      <button type="button" onclick="openModal('modal-customer')"
+        class="w-full rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-1 py-2.5 text-center text-[0.65rem] font-medium leading-tight text-white shadow-md shadow-black/30 transition hover:from-dg-400 hover:to-dg-500 md:text-xs">افزودن مشتری</button>
+    </aside>
+  </div>
+
+  <div id="modal-category" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 p-4" onclick="if(event.target===this) closeModal('modal-category')">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)]" onclick="event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-neutral-200">افزودن دسته‌بندی</h3>
+        <button type="button" onclick="closeModal('modal-category')" class="rounded-md px-2 py-1 text-sm text-emerald-200/70 hover:bg-dg-800">✕</button>
+      </div>
+      <form method="post" action="{{ url_for('add_category') }}" class="space-y-4" id="form-category">
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">نام دسته‌بندی</label>
+          <input type="text" name="name" required maxlength="200"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="نام را وارد کنید">
+        </div>
+        <div>
+          <p class="mb-2 text-sm text-emerald-200/90">نوع دسته‌بندی</p>
+          <input type="hidden" name="kind" id="category-kind" value="parent">
+          <label class="mb-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dg-600/40 bg-dg-950/40 px-3 py-2">
+            <input type="checkbox" id="cb-cat-parent" checked class="h-4 w-4 rounded border-dg-600 accent-dg-500" onchange="onCategoryTypeParent()">
+            <span class="text-sm">دسته اصلی (مادر)</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-dg-600/40 bg-dg-950/40 px-3 py-2">
+            <input type="checkbox" id="cb-cat-child" class="h-4 w-4 rounded border-dg-600 accent-dg-500" onchange="onCategoryTypeChild()">
+            <span class="text-sm">زیردسته</span>
+          </label>
+        </div>
+        <div id="category-parent-wrap" class="hidden">
+          <label class="mb-1 block text-sm text-emerald-200/90">دسته اصلی والد</label>
+          <select name="parent_id" id="category-parent-select"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50">
+            <option value="">انتخاب کنید</option>
+            {% for g in category_groups %}
+            <option value="{{ g.parent.id }}">{{ g.parent.name }}</option>
+            {% endfor %}
+          </select>
+          {% if not category_groups %}
+          <p class="mt-1 text-xs text-amber-400/90">ابتدا یک دسته اصلی ایجاد کنید.</p>
+          {% endif %}
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-category')" class="rounded-lg border border-dg-600/50 px-4 py-2 text-sm text-emerald-200 hover:bg-dg-800">انصراف</button>
+          <button type="submit" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-customer" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 p-4" onclick="if(event.target===this) closeModal('modal-customer')">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)]" onclick="event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-neutral-200">افزودن مشتری</h3>
+        <button type="button" onclick="closeModal('modal-customer')" class="rounded-md px-2 py-1 text-sm text-emerald-200/70 hover:bg-dg-800">✕</button>
+      </div>
+      <form method="post" action="{{ url_for('add_customer') }}" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">نام مشتری یا شرکت</label>
+          <input type="text" name="name" required maxlength="200"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="نام یا شرکت">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">شماره همراه</label>
+          <input type="text" name="phone" maxlength="50"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="مثال ۰۹۱۲...">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">آدرس</label>
+          <textarea name="address" rows="3" maxlength="1000"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="آدرس کامل"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-customer')" class="rounded-lg border border-dg-600/50 px-4 py-2 text-sm text-emerald-200 hover:bg-dg-800">انصراف</button>
+          <button type="submit" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-service" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 p-4" onclick="if(event.target===this) closeModal('modal-service')">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)]" onclick="event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-neutral-200">افزودن خدمت</h3>
+        <button type="button" onclick="closeModal('modal-service')" class="rounded-md px-2 py-1 text-sm text-emerald-200/70 hover:bg-dg-800">✕</button>
+      </div>
+      <form method="post" action="{{ url_for('add_service') }}" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">نام خدمت</label>
+          <input type="text" name="name" required maxlength="200"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="نام خدمت">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">قیمت</label>
+          <input type="text" name="price" maxlength="80"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="مثال: ۱٬۵۰۰٬۰۰۰ تومان">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">توضیحات</label>
+          <textarea name="description" rows="3" maxlength="2000"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="توضیحات خدمت"></textarea>
+        </div>
+        <div>
+          <p class="mb-2 text-sm font-medium text-emerald-200/90">انتخاب دسته‌بندی (چندتایی)</p>
+          {% if category_groups %}
+          <div class="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-dg-600/40 bg-dg-950/40 p-3">
+            {% for g in category_groups %}
+            <div class="border-b border-dg-700/50 pb-2 last:border-0 last:pb-0">
+              <p class="mb-1 text-xs font-semibold text-emerald-500">دسته اصلی</p>
+              <label class="flex cursor-pointer items-center gap-2 py-1 text-sm">
+                <input type="checkbox" name="category_ids" value="{{ g.parent.id }}" class="h-4 w-4 rounded border-dg-600 accent-dg-500">
+                <span>{{ g.parent.name }}</span>
+              </label>
+              {% if g.children %}
+              <p class="mb-1 mt-2 text-xs font-semibold text-emerald-500/80">زیردسته‌ها</p>
+              <div class="mr-2 space-y-1 border-r-2 border-dg-600/40 pr-2">
+                {% for ch in g.children %}
+                <label class="flex cursor-pointer items-center gap-2 py-0.5 text-sm text-emerald-100/85">
+                  <input type="checkbox" name="category_ids" value="{{ ch.id }}" class="h-4 w-4 rounded border-dg-600 accent-dg-500">
+                  <span>{{ ch.name }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-amber-400/90">ابتدا دسته‌بندی ایجاد کنید.</p>
+          {% endif %}
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-service')" class="rounded-lg border border-dg-600/50 px-4 py-2 text-sm text-emerald-200 hover:bg-dg-800">انصراف</button>
+          <button type="submit" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-edit-service" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 p-4" onclick="if(event.target===this) closeModal('modal-edit-service')">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)]" onclick="event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-neutral-200">ویرایش خدمت</h3>
+        <button type="button" onclick="closeModal('modal-edit-service')" class="rounded-md px-2 py-1 text-sm text-emerald-200/70 hover:bg-dg-800">✕</button>
+      </div>
+      <form id="form-edit-service" method="post" action="" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">نام خدمت</label>
+          <input type="text" name="name" id="edit-svc-name" required maxlength="200"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="نام خدمت">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">قیمت</label>
+          <input type="text" name="price" id="edit-svc-price" maxlength="80"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="مثال: ۱٬۵۰۰٬۰۰۰ تومان">
+        </div>
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">توضیحات</label>
+          <textarea name="description" id="edit-svc-desc" rows="3" maxlength="2000"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="توضیحات خدمت"></textarea>
+        </div>
+        <div>
+          <p class="mb-2 text-sm font-medium text-emerald-200/90">انتخاب دسته‌بندی (چندتایی)</p>
+          {% if category_groups %}
+          <div class="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-dg-600/40 bg-dg-950/40 p-3">
+            {% for g in category_groups %}
+            <div class="border-b border-dg-700/50 pb-2 last:border-0 last:pb-0">
+              <p class="mb-1 text-xs font-semibold text-emerald-500">دسته اصلی</p>
+              <label class="flex cursor-pointer items-center gap-2 py-1 text-sm">
+                <input type="checkbox" name="category_ids" value="{{ g.parent.id }}" class="edit-svc-cat h-4 w-4 rounded border-dg-600 accent-dg-500">
+                <span>{{ g.parent.name }}</span>
+              </label>
+              {% if g.children %}
+              <p class="mb-1 mt-2 text-xs font-semibold text-emerald-500/80">زیردسته‌ها</p>
+              <div class="mr-2 space-y-1 border-r-2 border-dg-600/40 pr-2">
+                {% for ch in g.children %}
+                <label class="flex cursor-pointer items-center gap-2 py-0.5 text-sm text-emerald-100/85">
+                  <input type="checkbox" name="category_ids" value="{{ ch.id }}" class="edit-svc-cat h-4 w-4 rounded border-dg-600 accent-dg-500">
+                  <span>{{ ch.name }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-amber-400/90">ابتدا دسته‌بندی ایجاد کنید.</p>
+          {% endif %}
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-edit-service')" class="rounded-lg border border-dg-600/50 px-4 py-2 text-sm text-emerald-200 hover:bg-dg-800">انصراف</button>
+          <button type="submit" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره تغییرات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-plan" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/65 p-4" onclick="if(event.target===this) closeModal('modal-plan')">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)]" onclick="event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-neutral-200">افزودن پلن</h3>
+        <button type="button" onclick="closeModal('modal-plan')" class="rounded-md px-2 py-1 text-sm text-emerald-200/70 hover:bg-dg-800">✕</button>
+      </div>
+      <form method="post" action="{{ url_for('add_plan') }}" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm text-emerald-200/90">نام پلن</label>
+          <input type="text" name="name" required maxlength="200"
+            class="w-full rounded-lg border border-dg-600/50 bg-dg-950/80 px-3 py-2 text-emerald-50 placeholder:text-emerald-600/50" placeholder="نام پلن">
+        </div>
+        <div>
+          <p class="mb-2 text-sm font-medium text-emerald-200/90">دسته‌های اصلی و زیردسته‌ها</p>
+          {% if category_groups %}
+          <div class="max-h-40 space-y-3 overflow-y-auto rounded-lg border border-dg-600/40 bg-dg-950/40 p-3">
+            {% for g in category_groups %}
+            <div class="border-b border-dg-700/50 pb-2 last:border-0 last:pb-0">
+              <label class="flex cursor-pointer items-center gap-2 py-1 text-sm">
+                <input type="checkbox" name="category_ids" value="{{ g.parent.id }}" class="h-4 w-4 rounded border-dg-600 accent-dg-500">
+                <span class="font-medium text-emerald-200">{{ g.parent.name }}</span>
+                <span class="text-xs text-emerald-500">(اصلی)</span>
+              </label>
+              {% if g.children %}
+              <div class="mr-2 mt-1 space-y-1 border-r-2 border-dg-600/40 pr-2">
+                {% for ch in g.children %}
+                <label class="flex cursor-pointer items-center gap-2 py-0.5 text-sm">
+                  <input type="checkbox" name="category_ids" value="{{ ch.id }}" class="h-4 w-4 rounded border-dg-600 accent-dg-500">
+                  <span>{{ ch.name }}</span>
+                  <span class="text-xs text-emerald-500/70">(زیردسته)</span>
+                </label>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-amber-400/90">دسته‌ای برای اتصال وجود ندارد.</p>
+          {% endif %}
+        </div>
+        <div>
+          <p class="mb-2 text-sm font-medium text-emerald-200/90">خدمات پلن</p>
+          {% if services %}
+          <div class="max-h-36 space-y-1 overflow-y-auto rounded-lg border border-dg-600/40 bg-dg-950/40 p-3">
+            {% for s in services %}
+            <label class="flex cursor-pointer items-center gap-2 py-1 text-sm">
+              <input type="checkbox" name="service_ids" value="{{ s.id }}" class="h-4 w-4 rounded border-dg-600 accent-dg-500">
+              <span>{{ s.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-amber-400/90">ابتدا خدمت ایجاد کنید.</p>
+          {% endif %}
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-plan')" class="rounded-lg border border-dg-600/50 px-4 py-2 text-sm text-emerald-200 hover:bg-dg-800">انصراف</button>
+          <button type="submit" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-order" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 p-4" onclick="if(event.target===this) closeOrderModal()">
+    <div class="max-h-[92vh] w-full max-w-2xl overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 shadow-2xl shadow-[0_12px_40px_-8px_rgba(34,197,94,0.18)] flex flex-col" onclick="event.stopPropagation()" dir="rtl">
+      <div class="flex shrink-0 items-center justify-between border-b border-neutral-800 px-5 py-3">
+        <h3 class="text-lg font-semibold text-neutral-100">ثبت سفارش</h3>
+        <button type="button" onclick="closeOrderModal()" class="rounded-md px-2 py-1 text-sm text-neutral-400 hover:bg-neutral-800">✕</button>
+      </div>
+      <p id="order-step-label" class="shrink-0 border-b border-neutral-800/80 px-5 py-2 text-xs text-neutral-500">مرحله ۱ از ۳ — انتخاب خدمات و پلن</p>
+
+      <div id="order-step-1" class="order-step-panel flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
+        {% if order_catalog.plans %}
+        <p class="mb-2 text-sm font-medium text-neutral-300">پلن‌ها</p>
+        <div class="mb-5 space-y-2 rounded-lg border border-neutral-800 bg-black/30 p-3">
+          {% for p in order_catalog.plans %}
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent px-2 py-2 hover:border-neutral-700 hover:bg-neutral-900/50">
+            <input type="checkbox" class="order-plan-cb mt-1 h-4 w-4 rounded border-neutral-600 accent-dg-500" value="{{ p.id }}">
+            <span class="text-sm text-neutral-200">{{ p.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <p class="mb-2 text-sm font-medium text-neutral-300">خدمات و دسته‌بندی</p>
+        <div class="max-h-[min(22rem,45vh)] space-y-2 overflow-y-auto rounded-lg border border-neutral-800 bg-black/30 p-3">
+          {% if order_catalog.services %}
+          {% for row in order_catalog.services %}
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent px-2 py-2 hover:border-neutral-700 hover:bg-neutral-900/50">
+            <input type="checkbox" class="order-svc-cb mt-1 h-4 w-4 rounded border-neutral-600 accent-dg-500" value="{{ row.id }}" data-amount="{{ row.amount }}">
+            <span class="min-w-0 flex-1 text-sm">
+              <span class="font-medium text-neutral-100">{{ row.name }}</span>
+              {% if row.categories %}
+              <span class="mr-2 text-xs text-neutral-500">({{ row.categories|join('، ') }})</span>
+              {% endif %}
+              {% if row.price %}
+              <span class="mr-2 text-xs text-emerald-600/80">{{ row.price }}</span>
+              {% endif %}
+            </span>
+          </label>
+          {% endfor %}
+          {% else %}
+          <p class="text-sm text-neutral-500">خدمتی برای انتخاب وجود ندارد.</p>
+          {% endif %}
+        </div>
+        <div class="mt-4 flex items-center justify-between border-t border-neutral-800 pt-4">
+          <span class="text-sm text-neutral-400">جمع بر اساس خدمات انتخاب‌شده:</span>
+          <span id="order-total-display" class="text-base font-bold text-emerald-400">۰ تومان</span>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button type="button" onclick="closeOrderModal()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">انصراف</button>
+          <button type="button" onclick="orderGoStep2()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">مرحله بعد</button>
+        </div>
+      </div>
+
+      <div id="order-step-2" class="order-step-panel hidden flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
+        <p class="mb-3 text-sm text-neutral-400">اطلاعات مشتری</p>
+        <div class="mb-4">
+          <label class="mb-1 block text-xs text-neutral-500">انتخاب از مشتریان ثبت‌شده</label>
+          <select id="order-customer-select" class="w-full rounded-lg border border-neutral-700 bg-black/40 px-3 py-2 text-sm text-neutral-100" onchange="onOrderCustomerSelect()">
+            <option value="">— مشتری جدید —</option>
+            {% for c in order_catalog.customers %}
+            <option value="{{ c.id }}">{{ c.name }}{% if c.phone %} — {{ c.phone }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="order-new-customer-fields" class="space-y-3">
+          <div>
+            <label class="mb-1 block text-xs text-neutral-500">نام <span class="text-amber-500">*</span></label>
+            <input type="text" id="order-c-name" maxlength="200" class="w-full rounded-lg border border-neutral-700 bg-black/40 px-3 py-2 text-sm text-neutral-100" placeholder="نام یا شرکت">
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-neutral-500">شماره تماس</label>
+            <input type="text" id="order-c-phone" maxlength="50" class="w-full rounded-lg border border-neutral-700 bg-black/40 px-3 py-2 text-sm text-neutral-100" placeholder="موبایل">
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-neutral-500">آدرس</label>
+            <textarea id="order-c-address" rows="2" maxlength="1000" class="w-full rounded-lg border border-neutral-700 bg-black/40 px-3 py-2 text-sm text-neutral-100" placeholder="آدرس"></textarea>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-between gap-2">
+          <button type="button" onclick="orderGoStep1()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">قبلی</button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeOrderModal()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">انصراف</button>
+            <button type="button" onclick="orderGoStep3()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">مرحله بعد</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="order-step-3" class="order-step-panel hidden flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
+        <p class="mb-3 text-sm font-medium text-neutral-300">پیش‌نمایش سفارش</p>
+        <div id="order-preview-box" class="mb-4 space-y-4 rounded-lg border border-neutral-800 bg-black/40 p-4 text-sm text-neutral-300"></div>
+        <div class="flex justify-between gap-2 border-t border-neutral-800 pt-4">
+          <button type="button" onclick="orderGoStep2()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">قبلی</button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeOrderModal()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">انصراف</button>
+            <button type="button" id="order-save-btn" onclick="orderSubmit()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره سفارش</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="order-catalog-json">{{ order_catalog | tojson }}</script>
+
+  <script>
+    var ORDER_CATALOG = {};
+    try {
+      ORDER_CATALOG = JSON.parse(document.getElementById('order-catalog-json').textContent);
+    } catch (e) { ORDER_CATALOG = { services: [], plans: [], customers: [] }; }
+    var orderWizardState = { step: 1, serviceIds: [], planIds: [], total: 0 };
+
+    function faNum(n) {
+      return String(n).replace(/\d/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[d]; });
+    }
+    function formatToman(n) {
+      return faNum(n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '٬')) + ' تومان';
+    }
+    function getMergedServiceIds() {
+      var svc = Array.prototype.slice.call(document.querySelectorAll('.order-svc-cb:checked')).map(function (cb) { return cb.value; });
+      var merged = new Set(svc);
+      Array.prototype.slice.call(document.querySelectorAll('.order-plan-cb:checked')).forEach(function (cb) {
+        var pl = (ORDER_CATALOG.plans || []).find(function (p) { return p.id === cb.value; });
+        if (pl && pl.service_ids) pl.service_ids.forEach(function (sid) { merged.add(sid); });
+      });
+      return Array.from(merged);
+    }
+    function computeTotalForIds(ids) {
+      return ids.reduce(function (sum, id) {
+        var s = (ORDER_CATALOG.services || []).find(function (x) { return x.id === id; });
+        return sum + (s && s.amount ? s.amount : 0);
+      }, 0);
+    }
+    function updateOrderTotal() {
+      var ids = getMergedServiceIds();
+      var t = computeTotalForIds(ids);
+      orderWizardState.total = t;
+      var el = document.getElementById('order-total-display');
+      if (el) el.textContent = formatToman(t);
+    }
+    function bindOrderStep1Inputs() {
+      document.querySelectorAll('.order-svc-cb, .order-plan-cb').forEach(function (el) {
+        el.removeEventListener('change', updateOrderTotal);
+        el.addEventListener('change', updateOrderTotal);
+      });
+    }
+    function openOrderModal() {
+      orderWizardState = { step: 1, serviceIds: [], planIds: [], total: 0 };
+      document.querySelectorAll('.order-svc-cb, .order-plan-cb').forEach(function (cb) { cb.checked = false; });
+      var sel = document.getElementById('order-customer-select');
+      if (sel) sel.value = '';
+      document.getElementById('order-c-name').value = '';
+      document.getElementById('order-c-phone').value = '';
+      document.getElementById('order-c-address').value = '';
+      onOrderCustomerSelect();
+      showOrderStep(1);
+      updateOrderTotal();
+      bindOrderStep1Inputs();
+      var m = document.getElementById('modal-order');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+    function closeOrderModal() {
+      var m = document.getElementById('modal-order');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+    function showOrderStep(n) {
+      orderWizardState.step = n;
+      document.getElementById('order-step-1').classList.toggle('hidden', n !== 1);
+      document.getElementById('order-step-2').classList.toggle('hidden', n !== 2);
+      document.getElementById('order-step-3').classList.toggle('hidden', n !== 3);
+      var labels = ['مرحله ۱ از ۳ — انتخاب خدمات و پلن', 'مرحله ۲ از ۳ — اطلاعات مشتری', 'مرحله ۳ از ۳ — پیش‌نمایش و ذخیره'];
+      var lb = document.getElementById('order-step-label');
+      if (lb) lb.textContent = labels[n - 1];
+    }
+    function orderGoStep1() { showOrderStep(1); bindOrderStep1Inputs(); }
+    function orderGoStep2() {
+      var merged = getMergedServiceIds();
+      if (merged.length === 0) {
+        alert('حداقل یک خدمت (مستقیم یا از طریق پلن) انتخاب کنید.');
+        return;
+      }
+      orderWizardState.serviceIds = Array.prototype.slice.call(document.querySelectorAll('.order-svc-cb:checked')).map(function (cb) { return cb.value; });
+      orderWizardState.planIds = Array.prototype.slice.call(document.querySelectorAll('.order-plan-cb:checked')).map(function (cb) { return cb.value; });
+      orderWizardState.total = computeTotalForIds(merged);
+      showOrderStep(2);
+    }
+    function onOrderCustomerSelect() {
+      var sel = document.getElementById('order-customer-select');
+      var wrap = document.getElementById('order-new-customer-fields');
+      if (!sel || !wrap) return;
+      if (sel.value) {
+        wrap.classList.add('opacity-50', 'pointer-events-none');
+        document.getElementById('order-c-name').removeAttribute('required');
+      } else {
+        wrap.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+    function orderGoStep3() {
+      var sel = document.getElementById('order-customer-select');
+      if (!sel.value) {
+        var nm = (document.getElementById('order-c-name').value || '').trim();
+        if (!nm) {
+          alert('نام مشتری را وارد کنید یا از لیست انتخاب کنید.');
+          return;
+        }
+      }
+      buildOrderPreview();
+      showOrderStep(3);
+    }
+    function buildOrderPreview() {
+      var merged = getMergedServiceIds();
+      var html = '';
+      html += '<div><span class="text-xs text-neutral-500">جمع کل:</span> <span class="font-bold text-emerald-400">' + formatToman(computeTotalForIds(merged)) + '</span></div>';
+      html += '<div class="border-t border-neutral-800 pt-3"><p class="mb-2 text-xs font-semibold text-neutral-500">خدمات</p><ul class="space-y-2">';
+      merged.forEach(function (id) {
+        var s = (ORDER_CATALOG.services || []).find(function (x) { return x.id === id; });
+        if (!s) return;
+        html += '<li class="rounded-lg border border-neutral-800 bg-neutral-900/50 p-2">';
+        html += '<div class="font-medium text-neutral-100">' + escapeHtml(s.name) + '</div>';
+        if (s.description) html += '<div class="mt-1 text-xs text-neutral-500">' + escapeHtml(s.description) + '</div>';
+        if (s.price) html += '<div class="mt-1 text-xs text-emerald-600/80">' + escapeHtml(s.price) + '</div>';
+        html += '</li>';
+      });
+      html += '</ul></div>';
+      var sel = document.getElementById('order-customer-select');
+      html += '<div class="border-t border-neutral-800 pt-3"><p class="mb-2 text-xs font-semibold text-neutral-500">مشتری</p>';
+      if (sel && sel.value) {
+        var c = (ORDER_CATALOG.customers || []).find(function (x) { return x.id === sel.value; });
+        if (c) {
+          html += '<div class="text-neutral-200">' + escapeHtml(c.name) + '</div>';
+          if (c.phone) html += '<div class="text-xs text-neutral-500">تماس: ' + escapeHtml(c.phone) + '</div>';
+          if (c.address) html += '<div class="text-xs text-neutral-500">آدرس: ' + escapeHtml(c.address) + '</div>';
+        }
+      } else {
+        html += '<div class="text-neutral-200">' + escapeHtml((document.getElementById('order-c-name').value || '').trim()) + '</div>';
+        var ph = (document.getElementById('order-c-phone').value || '').trim();
+        var ad = (document.getElementById('order-c-address').value || '').trim();
+        if (ph) html += '<div class="text-xs text-neutral-500">تماس: ' + escapeHtml(ph) + '</div>';
+        if (ad) html += '<div class="text-xs text-neutral-500">آدرس: ' + escapeHtml(ad) + '</div>';
+      }
+      html += '</div>';
+      document.getElementById('order-preview-box').innerHTML = html;
+    }
+    function escapeHtml(t) {
+      var d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+    function orderSubmit() {
+      var btn = document.getElementById('order-save-btn');
+      if (btn) { btn.disabled = true; }
+      var sel = document.getElementById('order-customer-select');
+      var payload = {
+        service_ids: Array.prototype.slice.call(document.querySelectorAll('.order-svc-cb:checked')).map(function (cb) { return cb.value; }),
+        plan_ids: Array.prototype.slice.call(document.querySelectorAll('.order-plan-cb:checked')).map(function (cb) { return cb.value; })
+      };
+      if (sel && sel.value) {
+        payload.customer_mode = 'existing';
+        payload.customer_id = sel.value;
+        payload.customer = {};
+      } else {
+        payload.customer_mode = 'new';
+        payload.customer = {
+          name: (document.getElementById('order-c-name').value || '').trim(),
+          phone: (document.getElementById('order-c-phone').value || '').trim(),
+          address: (document.getElementById('order-c-address').value || '').trim()
+        };
+      }
+      fetch('{{ url_for("create_order") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.body.ok) {
+            if (res.body.receipt_path) {
+              alert('سفارش ثبت شد و فاکتور در مسیر زیر ذخیره شد:\n' + res.body.receipt_path);
+            }
+            closeOrderModal();
+            window.location.reload();
+          } else {
+            alert(res.body.error || 'خطا در ثبت');
+            if (btn) btn.disabled = false;
+          }
+        })
+        .catch(function () {
+          alert('خطای شبکه');
+          if (btn) btn.disabled = false;
+        });
+    }
+    function openEditService(sid) {
+      var svc = (ORDER_CATALOG.services || []).find(function (x) { return x.id === sid; });
+      if (!svc) return;
+      document.getElementById('edit-svc-name').value = svc.name || '';
+      document.getElementById('edit-svc-price').value = svc.price || '';
+      document.getElementById('edit-svc-desc').value = svc.description || '';
+      var cids = svc.category_ids || [];
+      document.querySelectorAll('#form-edit-service .edit-svc-cat').forEach(function (cb) {
+        cb.checked = cids.indexOf(cb.value) >= 0;
+      });
+      document.getElementById('form-edit-service').action = '/service/' + encodeURIComponent(sid) + '/edit';
+      openModal('modal-edit-service');
+    }
+    function openModal(id) {
+      var el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+    function closeModal(id) {
+      var el = document.getElementById(id);
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+    function syncCategoryKind() {
+      var parentCb = document.getElementById('cb-cat-parent');
+      var childCb = document.getElementById('cb-cat-child');
+      var hidden = document.getElementById('category-kind');
+      var wrap = document.getElementById('category-parent-wrap');
+      var sel = document.getElementById('category-parent-select');
+      if (childCb && childCb.checked) {
+        if (hidden) hidden.value = 'child';
+        if (wrap) wrap.classList.remove('hidden');
+        if (sel) sel.required = true;
+      } else {
+        if (parentCb && !parentCb.checked && childCb && !childCb.checked) {
+          if (parentCb) parentCb.checked = true;
+        }
+        if (hidden) hidden.value = 'parent';
+        if (wrap) wrap.classList.add('hidden');
+        if (sel) { sel.required = false; sel.value = ''; }
+      }
+    }
+    function onCategoryTypeParent() {
+      var parentCb = document.getElementById('cb-cat-parent');
+      var childCb = document.getElementById('cb-cat-child');
+      if (parentCb && parentCb.checked && childCb) childCb.checked = false;
+      if (parentCb && !parentCb.checked && childCb && !childCb.checked) parentCb.checked = true;
+      syncCategoryKind();
+    }
+    function onCategoryTypeChild() {
+      var parentCb = document.getElementById('cb-cat-parent');
+      var childCb = document.getElementById('cb-cat-child');
+      if (childCb && childCb.checked && parentCb) parentCb.checked = false;
+      if (childCb && !childCb.checked && parentCb && !parentCb.checked) childCb.checked = true;
+      syncCategoryKind();
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        ['modal-category', 'modal-customer', 'modal-service', 'modal-edit-service', 'modal-plan'].forEach(closeModal);
+        closeOrderModal();
+      }
+    });
+  </script>
+</body>
+</html>
