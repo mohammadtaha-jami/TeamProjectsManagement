@@ -74,19 +74,30 @@
     input,
     textarea,
     select {
+      background-color: rgba(2, 6, 23, 0.72) !important;
+      color: #dcfce7 !important;
+      border-color: rgba(52, 65, 85, 0.95) !important;
       box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.85), 0 4px 12px -8px rgba(34, 197, 94, 0.25);
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(148, 163, 184, 0.85) !important;
     }
     input:focus,
     textarea:focus,
     select:focus {
       outline: none;
+      background-color: rgba(2, 6, 23, 0.9) !important;
       border-color: rgba(16, 185, 129, 0.75) !important;
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.22), 0 12px 24px -16px rgba(34, 197, 94, 0.5);
     }
     #order-preview-box {
       box-shadow: inset 0 0 0 1px rgba(31, 41, 55, 0.85), 0 14px 30px -20px rgba(16, 185, 129, 0.45);
       border-color: rgba(31, 41, 55, 0.95) !important;
+    }
+    #app-popup {
+      box-shadow: 0 22px 44px -20px rgba(16, 185, 129, 0.7);
     }
   </style>
 </head>
@@ -580,15 +591,25 @@
       </div>
 
       <div id="order-step-3" class="order-step-panel hidden flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
-        <p class="mb-3 text-sm font-medium text-neutral-300">پیش‌نمایش سفارش</p>
+        <p class="mb-3 text-sm font-medium text-neutral-300">پیش‌نمایش نهایی سفارش (پس از تایید، فاکتور ذخیره می‌شود)</p>
         <div id="order-preview-box" class="mb-4 space-y-4 rounded-lg border border-neutral-800 bg-black/40 p-4 text-sm text-neutral-300"></div>
         <div class="flex justify-between gap-2 border-t border-neutral-800 pt-4">
           <button type="button" onclick="orderGoStep2()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">قبلی</button>
           <div class="flex gap-2">
             <button type="button" onclick="closeOrderModal()" class="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">انصراف</button>
-            <button type="button" id="order-save-btn" onclick="orderSubmit()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">ذخیره سفارش</button>
+            <button type="button" id="order-save-btn" onclick="orderSubmit()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-dg-400 hover:to-dg-500">تایید و ذخیره سفارش</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-backdrop" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/60 p-4" onclick="if(event.target===this) closeAppPopup()">
+    <div id="app-popup" class="w-full max-w-md rounded-xl border border-emerald-700/60 bg-neutral-950 p-5 text-right shadow-2xl">
+      <h4 id="app-popup-title" class="mb-2 text-base font-semibold text-emerald-300">پیام</h4>
+      <p id="app-popup-message" class="text-sm leading-6 text-neutral-200"></p>
+      <div class="mt-4 flex justify-end">
+        <button type="button" onclick="closeAppPopup()" class="rounded-lg bg-gradient-to-b from-dg-500 to-dg-600 px-4 py-2 text-sm font-medium text-white">متوجه شدم</button>
       </div>
     </div>
   </div>
@@ -767,20 +788,40 @@
       }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
         .then(function (res) {
           if (res.ok && res.body.ok) {
-            if (res.body.receipt_path) {
-              alert('سفارش ثبت شد و فاکتور در مسیر زیر ذخیره شد:\n' + res.body.receipt_path);
-            }
+            var msg = 'سفارش با موفقیت ثبت شد.';
+            if (res.body.receipt_path) msg += '\nفاکتور در این مسیر ذخیره شد:\n' + res.body.receipt_path;
+            showAppPopup('ذخیره موفق فاکتور', msg, function () { window.location.reload(); });
             closeOrderModal();
-            window.location.reload();
           } else {
-            alert(res.body.error || 'خطا در ثبت');
+            showAppPopup('خطا در ثبت سفارش', res.body.error || 'خطا در ثبت');
             if (btn) btn.disabled = false;
           }
         })
         .catch(function () {
-          alert('خطای شبکه');
+          showAppPopup('خطای شبکه', 'ارتباط با سرور برقرار نشد.');
           if (btn) btn.disabled = false;
         });
+    }
+    var appPopupOnClose = null;
+    function showAppPopup(title, message, onClose) {
+      var backdrop = document.getElementById('popup-backdrop');
+      if (!backdrop) return;
+      document.getElementById('app-popup-title').textContent = title || 'پیام';
+      document.getElementById('app-popup-message').textContent = message || '';
+      appPopupOnClose = typeof onClose === 'function' ? onClose : null;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+    function closeAppPopup() {
+      var backdrop = document.getElementById('popup-backdrop');
+      if (!backdrop) return;
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+      if (appPopupOnClose) {
+        var cb = appPopupOnClose;
+        appPopupOnClose = null;
+        cb();
+      }
     }
     function openEditService(sid) {
       var svc = (ORDER_CATALOG.services || []).find(function (x) { return x.id === sid; });

@@ -1,3 +1,20 @@
 [
-
+  {
+    "id": "604a3bda-1562-49b6-bb26-f30c8b0cf25f",
+    "name": "طراحی سایت",
+    "kind": "parent",
+    "parent_id": null
+  },
+  {
+    "id": "cea9b8d3-d42d-414b-b095-4b70e95551f0",
+    "name": "گرافیگ",
+    "kind": "parent",
+    "parent_id": null
+  },
+  {
+    "id": "be1cbf88-f13b-40d0-bc7e-204353437bb3",
+    "name": "طراحی لوگو",
+    "kind": "child",
+    "parent_id": "cea9b8d3-d42d-414b-b095-4b70e95551f0"
+  }
 ]
