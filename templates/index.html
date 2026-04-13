@@ -99,6 +99,30 @@
     #app-popup {
       box-shadow: 0 22px 44px -20px rgba(16, 185, 129, 0.7);
     }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(16, 185, 129, 0.75) rgba(15, 23, 42, 0.85);
+    }
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    *::-webkit-scrollbar-track {
+      background: linear-gradient(180deg, rgba(2, 6, 23, 0.95), rgba(15, 23, 42, 0.95));
+      border-radius: 999px;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.92), rgba(5, 150, 105, 0.92));
+      border: 2px solid rgba(2, 6, 23, 0.9);
+      border-radius: 999px;
+      box-shadow: 0 6px 14px -8px rgba(16, 185, 129, 0.95);
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(52, 211, 153, 0.95), rgba(16, 185, 129, 0.95));
+    }
+    *::-webkit-scrollbar-corner {
+      background: rgba(2, 6, 23, 0.95);
+    }
   </style>
 </head>
 <body class="app-dark-theme min-h-screen bg-dg-950 text-emerald-50 antialiased">
