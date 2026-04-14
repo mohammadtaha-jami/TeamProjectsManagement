@@ -101,6 +101,89 @@ def append_category(name: str, kind: str, parent_id: str | None) -> bool:
     return True
 
 
+def update_category(cid: str, name: str, parent_id_form: str | None) -> bool:
+    name = (name or "").strip()
+    if not name:
+        return False
+    items = normalize_categories(read_list("categories"))
+    idx = next(
+        (i for i, x in enumerate(items) if isinstance(x, dict) and x.get("id") == cid),
+        None,
+    )
+    if idx is None:
+        return False
+    row = dict(items[idx])
+    kind = row.get("kind", "parent")
+    if kind == "child":
+        pid = (parent_id_form or "").strip() or None
+        if not pid or pid == cid:
+            return False
+        if not any(
+            isinstance(x, dict) and x.get("id") == pid and x.get("kind") == "parent"
+            for x in items
+        ):
+            return False
+        row["name"] = name
+        row["kind"] = "child"
+        row["parent_id"] = pid
+    else:
+        row["name"] = name
+        row["kind"] = "parent"
+        row["parent_id"] = None
+    items[idx] = row
+    write_list("categories", normalize_categories(items))
+    return True
+
+
+def delete_category_by_id(cid: str) -> bool:
+    items = normalize_categories(read_list("categories"))
+    row = next((x for x in items if isinstance(x, dict) and x.get("id") == cid), None)
+    if row is None:
+        return False
+    to_remove = {cid}
+    if row.get("kind") == "parent":
+        for x in items:
+            if (
+                isinstance(x, dict)
+                and x.get("kind") == "child"
+                and x.get("parent_id") == cid
+            ):
+                to_remove.add(x["id"])
+    new_items = [
+        x for x in items if not (isinstance(x, dict) and x.get("id") in to_remove)
+    ]
+    if len(new_items) == len(items):
+        return False
+    write_list("categories", new_items)
+
+    services = read_list("services")
+    s_changed = False
+    for s in services:
+        if not isinstance(s, dict):
+            continue
+        cats = list(s.get("category_ids") or [])
+        nc = [x for x in cats if x not in to_remove]
+        if nc != cats:
+            s["category_ids"] = nc
+            s_changed = True
+    if s_changed:
+        write_list("services", services)
+
+    plans = read_list("plans")
+    p_changed = False
+    for p in plans:
+        if not isinstance(p, dict):
+            continue
+        cids = list(p.get("category_ids") or [])
+        nc = [x for x in cids if x not in to_remove]
+        if nc != cids:
+            p["category_ids"] = nc
+            p_changed = True
+    if p_changed:
+        write_list("plans", plans)
+    return True
+
+
 def parse_price_amount(value: str) -> int:
     if not value:
         return 0
@@ -127,6 +210,35 @@ def append_customer(name: str, phone: str, address: str) -> str | None:
     )
     write_list("customers", items)
     return cid
+
+
+def update_customer_row(cid: str, name: str, phone: str, address: str) -> bool:
+    name = (name or "").strip()
+    if not name:
+        return False
+    items = read_list("customers")
+    for i, c in enumerate(items):
+        if isinstance(c, dict) and c.get("id") == cid:
+            items[i] = {
+                "id": cid,
+                "name": name,
+                "phone": (phone or "").strip(),
+                "address": (address or "").strip(),
+            }
+            write_list("customers", items)
+            return True
+    return False
+
+
+def delete_customer_by_id(cid: str) -> bool:
+    items = read_list("customers")
+    new_items = [
+        c for c in items if not (isinstance(c, dict) and c.get("id") == cid)
+    ]
+    if len(new_items) == len(items):
+        return False
+    write_list("customers", new_items)
+    return True
 
 
 def find_customer(customers: list, cid: str) -> dict | None:
@@ -240,8 +352,26 @@ def append_plan(name: str, category_ids: list[str], service_ids: list[str]) -> N
     name = (name or "").strip()
     if not name:
         return
-    cids = [x.strip() for x in (category_ids or []) if isinstance(x, str) and x.strip()]
-    sids = [x.strip() for x in (service_ids or []) if isinstance(x, str) and x.strip()]
+    cids = []
+    seen_cids: set[str] = set()
+    for x in category_ids or []:
+        if not isinstance(x, str) or not x.strip():
+            continue
+        cid = x.strip()
+        if cid in seen_cids:
+            continue
+        seen_cids.add(cid)
+        cids.append(cid)
+    sids = []
+    seen_sids: set[str] = set()
+    for x in service_ids or []:
+        if not isinstance(x, str) or not x.strip():
+            continue
+        sid = x.strip()
+        if sid in seen_sids:
+            continue
+        seen_sids.add(sid)
+        sids.append(sid)
     items = read_list("plans")
     items.append(
         {

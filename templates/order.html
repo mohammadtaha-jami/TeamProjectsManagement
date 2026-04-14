@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ثبت سفارش</title>
+  <script src="{{ url_for('serve_tailwind_bundle') }}"></script>
+  <style>
+    @font-face {
+      font-family: "Dana";
+      src: url("{{ url_for('serve_assets', filename='fonts/Dana-Black.ttf') }}") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    html:has(body.order-page) {
+      font-family: "Dana", "Tahoma", ui-sans-serif, system-ui, sans-serif;
+    }
+    body.order-page {
+      font-family: "Dana", "Tahoma", ui-sans-serif, system-ui, sans-serif;
+      background: radial-gradient(ellipse 120% 80% at 100% 0%, rgba(59, 130, 246, 0.18), transparent 50%),
+        radial-gradient(ellipse 100% 60% at 0% 100%, rgba(236, 72, 153, 0.14), transparent 45%),
+        radial-gradient(ellipse 80% 50% at 50% 50%, rgba(234, 179, 8, 0.06), transparent 40%),
+        #0a0a0f;
+      min-height: 100vh;
+    }
+    body.order-page button,
+    body.order-page input,
+    body.order-page textarea,
+    body.order-page select {
+      font-family: inherit;
+    }
+    .order-svc-card {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .order-svc-card:hover {
+      transform: translateY(-2px);
+    }
+    .order-tab-active {
+      box-shadow: 0 4px 20px -4px rgba(255, 255, 255, 0.15);
+    }
+    .plan-neon-card {
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .plan-neon-card:hover {
+      transform: translateY(-5px);
+    }
+    .plan-neon-card:focus-within {
+      outline: none;
+    }
+    .plan-service-scroll {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    }
+    .plan-service-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .plan-service-scroll::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body class="order-page text-neutral-100 antialiased">
+  {# پالت‌های رنگی برای زیردسته‌ها (چرخشی) #}
+  {% set sub_palettes = [
+    {'head': 'from-sky-500 to-blue-600', 'border': 'border-sky-400/35', 'head_text': 'text-white', 'card_border': 'border-sky-400/25', 'card_bg': 'bg-sky-950/35', 'price': 'text-sky-300', 'accent': 'accent-sky-400'},
+    {'head': 'from-fuchsia-500 to-pink-600', 'border': 'border-fuchsia-400/35', 'head_text': 'text-white', 'card_border': 'border-fuchsia-400/25', 'card_bg': 'bg-fuchsia-950/35', 'price': 'text-fuchsia-300', 'accent': 'accent-fuchsia-400'},
+    {'head': 'from-amber-400 to-orange-600', 'border': 'border-amber-400/35', 'head_text': 'text-neutral-900', 'card_border': 'border-amber-400/25', 'card_bg': 'bg-amber-950/40', 'price': 'text-amber-200', 'accent': 'accent-amber-400'},
+    {'head': 'from-rose-500 to-red-600', 'border': 'border-rose-400/35', 'head_text': 'text-white', 'card_border': 'border-rose-400/25', 'card_bg': 'bg-rose-950/35', 'price': 'text-rose-300', 'accent': 'accent-rose-400'},
+    {'head': 'from-violet-500 to-indigo-600', 'border': 'border-violet-400/35', 'head_text': 'text-white', 'card_border': 'border-violet-400/25', 'card_bg': 'bg-violet-950/35', 'price': 'text-violet-300', 'accent': 'accent-violet-400'},
+    {'head': 'from-cyan-400 to-teal-600', 'border': 'border-cyan-400/35', 'head_text': 'text-white', 'card_border': 'border-cyan-400/25', 'card_bg': 'bg-teal-950/35', 'price': 'text-cyan-300', 'accent': 'accent-cyan-400'},
+  ] %}
+  {% set plan_palettes = [
+    {'border': 'border-cyan-400/80', 'ring': 'ring-cyan-400/25', 'bg': 'bg-gradient-to-b from-cyan-950/70 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(34,211,238,0.28)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(34,211,238,0.42)]', 'line': 'via-cyan-400/50', 'dot': 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.9)]', 'accent': 'accent-cyan-400', 'price': 'text-cyan-200/90', 'foot': 'text-cyan-200/60'},
+    {'border': 'border-fuchsia-400/80', 'ring': 'ring-fuchsia-400/25', 'bg': 'bg-gradient-to-b from-fuchsia-950/70 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(232,121,249,0.28)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(232,121,249,0.4)]', 'line': 'via-fuchsia-400/50', 'dot': 'bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,0.9)]', 'accent': 'accent-fuchsia-400', 'price': 'text-fuchsia-200/90', 'foot': 'text-fuchsia-200/60'},
+    {'border': 'border-lime-400/80', 'ring': 'ring-lime-400/25', 'bg': 'bg-gradient-to-b from-lime-950/50 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(163,230,53,0.26)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(163,230,53,0.38)]', 'line': 'via-lime-400/50', 'dot': 'bg-lime-400 shadow-[0_0_10px_rgba(190,242,100,0.85)]', 'accent': 'accent-lime-400', 'price': 'text-lime-200/90', 'foot': 'text-lime-200/60'},
+    {'border': 'border-amber-400/85', 'ring': 'ring-amber-400/25', 'bg': 'bg-gradient-to-b from-amber-950/65 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(251,191,36,0.28)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(251,191,36,0.42)]', 'line': 'via-amber-400/55', 'dot': 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.9)]', 'accent': 'accent-amber-400', 'price': 'text-amber-200/90', 'foot': 'text-amber-200/60'},
+    {'border': 'border-violet-400/80', 'ring': 'ring-violet-400/25', 'bg': 'bg-gradient-to-b from-violet-950/70 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(167,139,250,0.28)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(167,139,250,0.4)]', 'line': 'via-violet-400/50', 'dot': 'bg-violet-400 shadow-[0_0_10px_rgba(167,139,250,0.9)]', 'accent': 'accent-violet-400', 'price': 'text-violet-200/90', 'foot': 'text-violet-200/60'},
+    {'border': 'border-rose-400/80', 'ring': 'ring-rose-400/25', 'bg': 'bg-gradient-to-b from-rose-950/65 via-slate-950/90 to-black', 'shadow': 'shadow-[0_0_32px_rgba(251,113,133,0.28)]', 'hover_shadow': 'hover:shadow-[0_0_44px_rgba(251,113,133,0.4)]', 'line': 'via-rose-400/50', 'dot': 'bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.9)]', 'accent': 'accent-rose-400', 'price': 'text-rose-200/90', 'foot': 'text-rose-200/60'},
+  ] %}
+
+  <main class="mx-auto w-[80%] max-w-none px-4 py-6 md:px-6">
+    <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="bg-gradient-to-l from-white via-neutral-100 to-neutral-400 bg-clip-text text-2xl font-black tracking-tight text-transparent">ثبت سفارش</h1>
+        <p class="mt-1 text-sm text-neutral-500">دستهٔ اصلی را انتخاب کن؛ خدمات زیر هر زیردسته جدا نمایش داده می‌شود.</p>
+      </div>
+      <a href="{{ url_for('modir') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-sm transition hover:bg-white/10">پنل مدیریت</a>
+    </header>
+
+    <section class="mb-5 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-xl shadow-black/40 backdrop-blur-md">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h2 class="text-base font-bold text-white">سبد خرید</h2>
+        <span id="cart-total" class="rounded-full bg-gradient-to-l from-emerald-500 to-teal-600 px-3 py-1 text-sm font-bold text-white shadow-lg shadow-emerald-500/20">۰ تومان</span>
+      </div>
+      <ul id="cart-items" class="space-y-2 text-sm text-neutral-300">
+        <li class="text-neutral-500">هنوز موردی انتخاب نشده است.</li>
+      </ul>
+    </section>
+
+    <section class="mb-4 rounded-2xl border border-white/10 bg-black/25 p-3 backdrop-blur-sm">
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+        {% for og in order_category_groups %}
+        <button type="button" class="order-tab shrink-0 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:bg-white/10" data-target="cat-{{ og.parent.id }}">{{ og.parent.name }}</button>
+        {% endfor %}
+        <button type="button" class="order-tab shrink-0 rounded-full border border-amber-400/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/25" data-target="plans-tab">پلن‌ها</button>
+      </div>
+    </section>
+
+    {% for og in order_category_groups %}
+    <section id="cat-{{ og.parent.id }}" class="tab-panel hidden space-y-6 rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm">
+      <div class="flex flex-wrap items-end justify-between gap-2 border-b border-white/10 pb-3">
+        <h3 class="text-lg font-bold text-white">{{ og.parent.name }}</h3>
+        <span class="text-xs font-medium text-neutral-500">دستهٔ اصلی</span>
+      </div>
+
+      {% if og.child_sections %}
+      {% for sec in og.child_sections %}
+      {% set pal = sub_palettes[loop.index0 % (sub_palettes|length)] %}
+      <div class="overflow-hidden rounded-2xl border {{ pal.border }} bg-black/20 shadow-lg">
+        <div class="bg-gradient-to-l {{ pal.head }} px-4 py-3">
+          <h4 class="text-base font-bold {{ pal.head_text }}">{{ sec.child.name }}</h4>
+          <p class="mt-0.5 text-xs opacity-90 {{ pal.head_text }}">زیردسته</p>
+        </div>
+        <div class="p-4">
+          {% if sec.services %}
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {% for s in sec.services %}
+            <label class="order-svc-card flex cursor-pointer flex-col rounded-xl border {{ pal.card_border }} {{ pal.card_bg }} p-3 shadow-md hover:shadow-lg">
+              <div class="flex items-start gap-2">
+                <input type="checkbox" class="item-cb mt-1 h-4 w-4 shrink-0 rounded border-white/20 {{ pal.accent }}" data-kind="service" data-id="{{ s.id }}" data-name="{{ s.name }}" data-price="{{ s.price or '' }}">
+                <div class="min-w-0 flex-1">
+                  <p class="font-semibold text-white">{{ s.name }}</p>
+                  {% if s.get('price') %}
+                  <p class="mt-1 text-sm font-medium {{ pal.price }}">{{ s.price }}</p>
+                  {% endif %}
+                  {% if s.get('description') %}
+                  <p class="mt-1 text-xs leading-relaxed text-neutral-400">{{ s.description }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-neutral-500">در این زیردسته هنوز خدمتی ثبت نشده.</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      {% if og.parent_only_services %}
+      <div class="overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-slate-800/40 to-slate-950/60">
+        <div class="border-b border-white/10 bg-gradient-to-l from-slate-600 to-slate-800 px-4 py-3">
+          <h4 class="text-base font-bold text-white">مستقیم زیر «{{ og.parent.name }}»</h4>
+          <p class="mt-0.5 text-xs text-slate-300">خدماتی که فقط به دستهٔ اصلی وصل‌اند (بدون زیردسته)</p>
+        </div>
+        <div class="p-4">
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {% for s in og.parent_only_services %}
+            <label class="order-svc-card flex cursor-pointer flex-col rounded-xl border border-slate-500/30 bg-slate-900/40 p-3 hover:border-slate-400/50">
+              <div class="flex items-start gap-2">
+                <input type="checkbox" class="item-cb mt-1 h-4 w-4 shrink-0 rounded border-white/20 accent-slate-300" data-kind="service" data-id="{{ s.id }}" data-name="{{ s.name }}" data-price="{{ s.price or '' }}">
+                <div class="min-w-0 flex-1">
+                  <p class="font-semibold text-white">{{ s.name }}</p>
+                  {% if s.get('price') %}
+                  <p class="mt-1 text-sm text-slate-300">{{ s.price }}</p>
+                  {% endif %}
+                  {% if s.get('description') %}
+                  <p class="mt-1 text-xs text-neutral-500">{{ s.description }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not og.child_sections and not og.parent_only_services %}
+      <p class="text-sm text-neutral-500">برای این دسته زیردسته یا خدمتی ثبت نشده.</p>
+      {% elif og.child_sections and not og.parent_only_services %}
+        {% set ns = namespace(any_svc=false) %}
+        {% for sec in og.child_sections %}
+          {% if sec.services %}{% set ns.any_svc = true %}{% endif %}
+        {% endfor %}
+        {% if not ns.any_svc %}
+      <p class="text-sm text-neutral-500">هنوز خدمتی در زیردسته‌ها ثبت نشده.</p>
+        {% endif %}
+      {% endif %}
+    </section>
+    {% endfor %}
+
+    <section id="plans-tab" class="tab-panel hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-950/80 via-black/50 to-black/80 p-5 backdrop-blur-md">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-2 border-b border-white/10 pb-4">
+        <h3 class="bg-gradient-to-l from-white via-fuchsia-200 to-cyan-300 bg-clip-text text-lg font-black text-transparent">پلن‌ها</h3>
+        <span class="text-xs font-medium text-neutral-400">هر کارت: پلن به‌صورت عمودی با فهرست خدمات داخلش</span>
+      </div>
+      <div class="grid grid-cols-1 justify-items-center gap-8 sm:grid-cols-2 xl:grid-cols-3">
+        {% for p in plans %}
+        {% set pp = plan_palettes[loop.index0 % (plan_palettes|length)] %}
+        {% set p_sids = p.get('service_ids') or [] %}
+        <label class="plan-neon-card order-svc-card group flex w-full max-w-[17.5rem] cursor-pointer flex-col overflow-hidden rounded-2xl border-2 {{ pp.border }} {{ pp.bg }} ring-1 {{ pp.ring }} {{ pp.shadow }} {{ pp.hover_shadow }}">
+          <div class="relative flex shrink-0 items-start gap-3 p-4 pb-3">
+            <input type="checkbox" class="item-cb mt-1.5 h-4 w-4 shrink-0 rounded border-white/40 {{ pp.accent }}" data-kind="plan" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="">
+            <div class="min-w-0 flex-1 text-right">
+              <p class="text-base font-black leading-tight text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]">{{ p.name }}</p>
+              <p class="mt-1.5 text-[11px] font-medium leading-relaxed text-neutral-400">تیک بزنید تا همهٔ خدمات این پلن به سفارش اضافه شوند.</p>
+            </div>
+          </div>
+          <div class="mx-4 h-px shrink-0 bg-gradient-to-l from-transparent {{ pp.line }} to-transparent opacity-90"></div>
+          <div class="plan-service-scroll min-h-[9.5rem] flex-1 overflow-y-auto px-3 py-3">
+            {% if p_sids %}
+            <p class="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-500">خدمات پلن</p>
+            <ul class="space-y-2">
+              {% for sid in p_sids %}
+              {% set svc = service_by_id.get(sid) %}
+              <li class="flex items-start gap-2.5 rounded-xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm transition group-hover:border-white/15">
+                <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full {{ pp.dot }}"></span>
+                <div class="min-w-0 flex-1 text-right">
+                  <span class="block text-sm font-semibold leading-snug text-neutral-100">{% if svc %}{{ svc.get('name', '') or '—' }}{% else %}شناسه: {{ (sid|string)[:8] }}{% if (sid|string)|length > 8 %}…{% endif %}{% endif %}</span>
+                  {% if svc and svc.get('price') %}
+                  <span class="mt-0.5 block text-[11px] font-medium {{ pp.price }}">{{ svc.price }}</span>
+                  {% endif %}
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="flex h-full min-h-[8rem] flex-col items-center justify-center rounded-xl border border-dashed border-white/15 bg-black/25 px-3 py-6 text-center">
+              <p class="text-xs text-neutral-500">هنوز خدمتی به این پلن وصل نشده.</p>
+            </div>
+            {% endif %}
+          </div>
+          <div class="shrink-0 border-t border-white/10 bg-black/30 px-3 py-2.5 text-center">
+            <span class="text-[10px] font-semibold {{ pp.foot }}">پلن نئونی — {{ p_sids|length }} خدمت</span>
+          </div>
+        </label>
+        {% endfor %}
+        {% if not plans %}
+        <p class="col-span-full text-sm text-neutral-500">پلنی برای انتخاب وجود ندارد.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="mt-6 rounded-2xl border border-white/10 bg-black/35 p-5 backdrop-blur-md">
+      <h2 class="mb-3 text-base font-bold text-white">اطلاعات مشتری</h2>
+      <div class="grid gap-3 md:grid-cols-3">
+        <input id="customer-name" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-fuchsia-500/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20" placeholder="نام مشتری (اجباری)">
+        <input id="customer-phone" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="شماره تماس">
+        <input id="customer-address" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" placeholder="آدرس">
+      </div>
+      <div class="mt-4">
+        <button id="submit-order" type="button" class="rounded-xl bg-gradient-to-l from-fuchsia-600 via-rose-500 to-amber-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fuchsia-500/25 transition hover:brightness-110">ثبت سفارش</button>
+      </div>
+      <p id="order-message" class="mt-3 text-sm text-neutral-400"></p>
+    </section>
+  </main>
+
+  <div id="prefactor-backdrop" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onclick="if(event.target===this) closePrefactor()">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/15 bg-neutral-950/95 p-6 shadow-2xl" onclick="event.stopPropagation()" dir="rtl">
+      <h3 class="mb-1 text-lg font-bold text-white">پیش‌فاکتور</h3>
+      <p class="mb-4 text-xs text-neutral-500">موارد زیر پس از تأیید ذخیره و فاکتور صادر می‌شود.</p>
+      <div id="prefactor-body" class="mb-6 space-y-4 text-sm text-neutral-200"></div>
+      <div class="flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
+        <button type="button" id="prefactor-cancel" class="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5">انصراف</button>
+        <button type="button" id="prefactor-confirm" class="rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/30">تایید و صدور فاکتور</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="checkout-catalog-json">{{ checkout_catalog | tojson }}</script>
+
+  <script>
+    var CHECKOUT = { services: [], plans: [] };
+    try {
+      CHECKOUT = JSON.parse(document.getElementById('checkout-catalog-json').textContent);
+    } catch (e) { CHECKOUT = { services: [], plans: [] }; }
+
+    var pendingOrderPayload = null;
+
+    function parsePriceAmount(value) {
+      if (!value) return 0;
+      var text = String(value);
+      var persian = '۰۱۲۳۴۵۶۷۸۹';
+      for (var i = 0; i < persian.length; i += 1) {
+        text = text.replace(new RegExp(persian[i], 'g'), String(i));
+      }
+      var digits = text.replace(/\D/g, '');
+      return digits ? parseInt(digits, 10) : 0;
+    }
+
+    function formatToman(amount) {
+      var text = String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, '\u066C');
+      var persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+      text = text.replace(/\d/g, function (d) { return persianDigits[d]; });
+      return text + ' تومان';
+    }
+
+    function escapeHtml(t) {
+      var d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    function getSelectionIds() {
+      var serviceIds = [];
+      var planIds = [];
+      document.querySelectorAll('.item-cb:checked').forEach(function (cb) {
+        if (cb.dataset.kind === 'plan') planIds.push(cb.dataset.id);
+        else serviceIds.push(cb.dataset.id);
+      });
+      return { service_ids: serviceIds, plan_ids: planIds };
+    }
+
+    function getMergedServiceIds(sel) {
+      var merged = new Set(sel.service_ids || []);
+      (sel.plan_ids || []).forEach(function (pid) {
+        var pl = (CHECKOUT.plans || []).find(function (p) { return p.id === pid; });
+        if (pl && pl.service_ids) pl.service_ids.forEach(function (sid) { merged.add(sid); });
+      });
+      return Array.from(merged);
+    }
+
+    function serviceById(sid) {
+      return (CHECKOUT.services || []).find(function (x) { return x.id === sid; });
+    }
+
+    function mergedTotalAmount(mergedIds) {
+      return mergedIds.reduce(function (sum, id) {
+        var s = serviceById(id);
+        return sum + (s && s.amount ? s.amount : 0);
+      }, 0);
+    }
+
+    function updateCart() {
+      var cartItems = document.getElementById('cart-items');
+      var totalEl = document.getElementById('cart-total');
+      if (!cartItems || !totalEl) return;
+
+      var sel = getSelectionIds();
+      var merged = getMergedServiceIds(sel);
+      var total = mergedTotalAmount(merged);
+
+      if (!merged.length && !(sel.plan_ids && sel.plan_ids.length)) {
+        cartItems.innerHTML = '<li class="text-neutral-500">هنوز موردی انتخاب نشده است.</li>';
+        totalEl.textContent = formatToman(0);
+        return;
+      }
+
+      var html = '';
+      if (sel.plan_ids && sel.plan_ids.length) {
+        var names = sel.plan_ids.map(function (pid) {
+          var pl = (CHECKOUT.plans || []).find(function (p) { return p.id === pid; });
+          return pl ? pl.name : pid;
+        });
+        html += '<li class="rounded-xl border border-amber-500/25 bg-amber-950/20 px-3 py-2 text-xs text-amber-100/90">پلن\u200cها: ' + escapeHtml(names.join('، ')) + '</li>';
+      }
+      merged.forEach(function (sid) {
+        var s = serviceById(sid);
+        if (!s) return;
+        var amt = s.amount || 0;
+        html += '<li class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">' +
+          '<span class="text-neutral-200">' + escapeHtml(s.name || '') + '</span>' +
+          '<span class="text-amber-300">' + formatToman(amt) + '</span></li>';
+      });
+      if (!merged.length && sel.plan_ids && sel.plan_ids.length) {
+        html += '<li class="text-xs text-neutral-500">پلن انتخاب شده بدون خدمت قیمت\u200cدار ثبت نشده است.</li>';
+      }
+      cartItems.innerHTML = html;
+      totalEl.textContent = formatToman(total);
+    }
+
+    function openPrefactor() {
+      var bd = document.getElementById('prefactor-backdrop');
+      if (!bd) return;
+      bd.classList.remove('hidden');
+      bd.classList.add('flex');
+    }
+
+    function closePrefactor() {
+      var bd = document.getElementById('prefactor-backdrop');
+      if (!bd) return;
+      bd.classList.add('hidden');
+      bd.classList.remove('flex');
+      pendingOrderPayload = null;
+    }
+
+    function buildPrefactorHtml(payload, mergedIds, total) {
+      var cust = payload.customer || {};
+      var lines = '';
+      lines += '<div class="rounded-xl border border-white/10 bg-black/40 p-3">';
+      lines += '<p class="mb-2 text-xs font-semibold text-neutral-400">مشتری</p>';
+      lines += '<p class="font-medium text-white">' + escapeHtml(cust.name || '') + '</p>';
+      if (cust.phone) lines += '<p class="mt-1 text-xs text-neutral-400">تماس: ' + escapeHtml(cust.phone) + '</p>';
+      if (cust.address) lines += '<p class="mt-1 text-xs text-neutral-400">آدرس: ' + escapeHtml(cust.address) + '</p>';
+      lines += '</div>';
+      lines += '<div class="rounded-xl border border-white/10 bg-black/40 p-3">';
+      lines += '<p class="mb-2 text-xs font-semibold text-neutral-400">خدمات در فاکتور (بدون تکرار)</p><ul class="space-y-2">';
+      if (!mergedIds.length) {
+        lines += '<li class="text-neutral-500">خدمتی برای محاسبه وجود ندارد.</li>';
+      } else {
+        mergedIds.forEach(function (sid) {
+          var s = serviceById(sid);
+          if (!s) return;
+          lines += '<li class="flex justify-between gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0"><span>' + escapeHtml(s.name || '') + '</span><span class="shrink-0 text-emerald-300">' + formatToman(s.amount || 0) + '</span></li>';
+        });
+      }
+      lines += '</ul></div>';
+      if (payload.plan_ids && payload.plan_ids.length) {
+        var pnames = payload.plan_ids.map(function (pid) {
+          var pl = (CHECKOUT.plans || []).find(function (p) { return p.id === pid; });
+          return pl ? pl.name : pid;
+        });
+        lines += '<p class="text-xs text-neutral-500">پلن\u200cهای انتخابی: ' + escapeHtml(pnames.join('، ')) + '</p>';
+      }
+      lines += '<div class="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-3 py-2"><span class="font-semibold text-white">جمع کل</span><span class="text-lg font-bold text-emerald-300">' + formatToman(total) + '</span></div>';
+      return lines;
+    }
+
+    function activateFirstTab() {
+      var firstTab = document.querySelector('.order-tab');
+      if (firstTab) firstTab.click();
+    }
+
+    document.querySelectorAll('.order-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.dataset.target;
+        document.querySelectorAll('.tab-panel').forEach(function (panel) {
+          panel.classList.toggle('hidden', panel.id !== target);
+        });
+        document.querySelectorAll('.order-tab').forEach(function (tab) {
+          tab.classList.remove('order-tab-active', 'ring-2', 'ring-white/30');
+        });
+        btn.classList.add('order-tab-active', 'ring-2', 'ring-white/30');
+      });
+    });
+
+    document.querySelectorAll('.item-cb').forEach(function (cb) {
+      cb.addEventListener('change', updateCart);
+    });
+
+    document.getElementById('submit-order').addEventListener('click', function () {
+      document.getElementById('order-message').textContent = '';
+      var sel = getSelectionIds();
+      if (!sel.service_ids.length && !sel.plan_ids.length) {
+        document.getElementById('order-message').textContent = 'حداقل یک خدمت یا پلن انتخاب کنید.';
+        return;
+      }
+      var merged = getMergedServiceIds(sel);
+      if (!merged.length) {
+        document.getElementById('order-message').textContent = 'حداقل یک خدمت (مستقیم یا از طریق پلن) باید در سفارش باشد.';
+        return;
+      }
+      var name = (document.getElementById('customer-name').value || '').trim();
+      if (!name) {
+        document.getElementById('order-message').textContent = 'نام مشتری الزامی است.';
+        return;
+      }
+      pendingOrderPayload = {
+        service_ids: sel.service_ids,
+        plan_ids: sel.plan_ids,
+        customer_mode: 'new',
+        customer: {
+          name: name,
+          phone: (document.getElementById('customer-phone').value || '').trim(),
+          address: (document.getElementById('customer-address').value || '').trim()
+        }
+      };
+      var total = mergedTotalAmount(merged);
+      document.getElementById('prefactor-body').innerHTML = buildPrefactorHtml(pendingOrderPayload, merged, total);
+      openPrefactor();
+    });
+
+    document.getElementById('prefactor-cancel').addEventListener('click', closePrefactor);
+
+    document.getElementById('prefactor-confirm').addEventListener('click', function () {
+      var btn = document.getElementById('prefactor-confirm');
+      if (!pendingOrderPayload) return;
+      if (btn) btn.disabled = true;
+      fetch('{{ url_for("create_order") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pendingOrderPayload)
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.body.ok) {
+            document.getElementById('order-message').textContent = 'سفارش با موفقیت ثبت شد.';
+            if (res.body.receipt_path) {
+              document.getElementById('order-message').textContent += ' مسیر فاکتور: ' + res.body.receipt_path;
+            }
+            document.querySelectorAll('.item-cb').forEach(function (cb) { cb.checked = false; });
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-phone').value = '';
+            document.getElementById('customer-address').value = '';
+            updateCart();
+            closePrefactor();
+          } else {
+            document.getElementById('order-message').textContent = 'ثبت سفارش ناموفق بود.';
+          }
+        })
+        .catch(function () {
+          document.getElementById('order-message').textContent = 'خطای ارتباط با سرور.';
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closePrefactor();
+    });
+
+    activateFirstTab();
+    updateCart();
+  </script>
+</body>
+</html>
