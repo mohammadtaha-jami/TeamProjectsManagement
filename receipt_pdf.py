@@ -84,12 +84,34 @@ def _cell_paragraph(text: str | None, style: ParagraphStyle) -> Paragraph:
     return Paragraph(_wrap_long_html(text), style)
 
 
+def _service_details_html(row: dict) -> str:
+    terms = [x.strip() for x in (row.get("terms") or []) if isinstance(x, str) and x.strip()]
+    extra_note = (row.get("extra_note") or "").strip()
+    # fallback for legacy rows that only have plain description text
+    if not terms and not extra_note:
+        raw_desc = (row.get("description") or "").strip()
+        if not raw_desc:
+            return _fa_shape("-")
+        lines = [x.strip() for x in raw_desc.splitlines() if x.strip()]
+        return "<br/>".join(_fa_shape(escape(x)) for x in lines) if lines else _fa_shape(escape(raw_desc))
+
+    detail_lines: list[str] = []
+    if terms:
+        detail_lines.append(_fa_shape("مفاد:"))
+        detail_lines.extend(_fa_shape("• " + escape(term)) for term in terms)
+    if extra_note:
+        detail_lines.append(_fa_shape("توضیحات تکمیلی:"))
+        detail_lines.append(_fa_shape(escape(extra_note)))
+    return "<br/>".join(detail_lines) if detail_lines else _fa_shape("-")
+
+
 def create_receipt_pdf(
     *,
     order_id: str,
     customer_snapshot: dict,
     services_detail: list[dict],
     total_amount: int,
+    selected_plans: list[dict] | None = None,
 ) -> str:
     output_dir = Path(__file__).resolve().parent / "reciept"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -276,11 +298,12 @@ def create_receipt_pdf(
     elements.append(customer_table)
     elements.append(Spacer(1, 10))
 
-    descriptions: list[tuple[str, str]] = []
+    descriptions: list[tuple[str, dict]] = []
     for row in services_detail:
         name = _safe_text(row.get("name"))
-        if (row.get("description") or "").strip():
-            descriptions.append((name, row["description"].strip()))
+        detail_html = _service_details_html(row)
+        if detail_html and detail_html != _fa_shape("-"):
+            descriptions.append((name, row))
 
     # ۲) جدول توضیحات در میانه (قبل از جدول قیمت/خدمات)
     if descriptions:
@@ -292,10 +315,10 @@ def create_receipt_pdf(
                 _fa_shape("نام خدمت"),
             ]
         ]
-        for name, desc in descriptions:
+        for name, row in descriptions:
             desc_rows.append(
                 [
-                    _cell_paragraph(desc, desc_wide_style),
+                    Paragraph(_service_details_html(row), desc_wide_style),
                     _cell_paragraph(name, desc_name_style),
                 ]
             )
@@ -320,6 +343,50 @@ def create_receipt_pdf(
             )
         )
         elements.append(desc_table)
+        elements.append(Spacer(1, 10))
+
+    selected_plans = selected_plans or []
+    if selected_plans:
+        elements.append(Paragraph(_fa_shape("پلن‌های انتخابی"), normal_style))
+        elements.append(Spacer(1, 4))
+        plan_rows: list[list] = [[_fa_shape("مفاد و توضیحات تکمیلی"), _fa_shape("نام پلن")]]
+        for pl in selected_plans:
+            plan_name = _safe_text(pl.get("name"))
+            terms = [x.strip() for x in (pl.get("terms") or []) if isinstance(x, str) and x.strip()]
+            extra_note = (pl.get("extra_note") or "").strip()
+            detail_lines: list[str] = []
+            if terms:
+                detail_lines.append(_fa_shape("مفاد:"))
+                detail_lines.extend(_fa_shape(f"• {t}") for t in terms)
+            if extra_note:
+                detail_lines.append(_fa_shape("توضیحات تکمیلی:"))
+                detail_lines.append(_fa_shape(extra_note))
+            if not detail_lines:
+                detail_lines.append(_fa_shape("-"))
+            plan_rows.append(
+                [
+                    Paragraph("<br/>".join(detail_lines), desc_wide_style),
+                    _cell_paragraph(plan_name, desc_name_style),
+                ]
+            )
+        plans_table = Table(plan_rows, colWidths=[desc_text_w, desc_name_w])
+        plans_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (1, 0), colors.HexColor("#6d28d9")),
+                    ("TEXTCOLOR", (0, 0), (1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (1, 0), font_name),
+                    ("FONTSIZE", (0, 0), (1, 0), 10),
+                    ("ALIGN", (0, 0), (1, -1), "RIGHT"),
+                    ("VALIGN", (0, 0), (1, -1), "TOP"),
+                    ("GRID", (0, 0), (1, -1), 0.45, colors.HexColor("#c4b5fd")),
+                    ("BACKGROUND", (0, 1), (1, -1), colors.HexColor("#f5f3ff")),
+                    ("RIGHTPADDING", (0, 0), (1, -1), 8),
+                    ("LEFTPADDING", (0, 0), (1, -1), 8),
+                ]
+            )
+        )
+        elements.append(plans_table)
         elements.append(Spacer(1, 10))
 
     # ۳) جدول قیمت و خدمات + جمع کل — آخرین جدول اصلی

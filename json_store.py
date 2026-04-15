@@ -279,6 +279,8 @@ def append_service(
     category_ids: list[str],
     price: str = "",
     description: str = "",
+    terms: list[str] | None = None,
+    extra_note: str = "",
 ) -> None:
     name = (name or "").strip()
     if not name:
@@ -288,6 +290,16 @@ def append_service(
         if isinstance(x, str) and x.strip():
             ids.append(x.strip())
     items = read_list("services")
+    clean_terms: list[str] = []
+    seen_terms: set[str] = set()
+    for term in terms or []:
+        if not isinstance(term, str):
+            continue
+        t = term.strip()
+        if not t or t in seen_terms:
+            continue
+        seen_terms.add(t)
+        clean_terms.append(t)
     items.append(
         {
             "id": str(uuid4()),
@@ -295,6 +307,8 @@ def append_service(
             "category_ids": ids,
             "price": (price or "").strip(),
             "description": (description or "").strip(),
+            "terms": clean_terms,
+            "extra_note": (extra_note or "").strip(),
         }
     )
     write_list("services", items)
@@ -306,12 +320,24 @@ def update_service(
     category_ids: list[str],
     price: str,
     description: str,
+    terms: list[str] | None = None,
+    extra_note: str = "",
 ) -> bool:
     name = (name or "").strip()
     if not name:
         return False
     ids = [x.strip() for x in (category_ids or []) if isinstance(x, str) and x.strip()]
     items = read_list("services")
+    clean_terms: list[str] = []
+    seen_terms: set[str] = set()
+    for term in terms or []:
+        if not isinstance(term, str):
+            continue
+        t = term.strip()
+        if not t or t in seen_terms:
+            continue
+        seen_terms.add(t)
+        clean_terms.append(t)
     for i, s in enumerate(items):
         if isinstance(s, dict) and s.get("id") == sid:
             items[i] = {
@@ -320,6 +346,8 @@ def update_service(
                 "category_ids": ids,
                 "price": (price or "").strip(),
                 "description": (description or "").strip(),
+                "terms": clean_terms,
+                "extra_note": (extra_note or "").strip(),
             }
             write_list("services", items)
             return True
@@ -348,7 +376,14 @@ def delete_service_by_id(sid: str) -> bool:
     return True
 
 
-def append_plan(name: str, category_ids: list[str], service_ids: list[str]) -> None:
+def append_plan(
+    name: str,
+    category_ids: list[str],
+    service_ids: list[str],
+    price: str = "",
+    terms: list[str] | None = None,
+    extra_note: str = "",
+) -> None:
     name = (name or "").strip()
     if not name:
         return
@@ -372,6 +407,16 @@ def append_plan(name: str, category_ids: list[str], service_ids: list[str]) -> N
             continue
         seen_sids.add(sid)
         sids.append(sid)
+    clean_terms: list[str] = []
+    seen_terms: set[str] = set()
+    for term in terms or []:
+        if not isinstance(term, str):
+            continue
+        t = term.strip()
+        if not t or t in seen_terms:
+            continue
+        seen_terms.add(t)
+        clean_terms.append(t)
     items = read_list("plans")
     items.append(
         {
@@ -379,6 +424,9 @@ def append_plan(name: str, category_ids: list[str], service_ids: list[str]) -> N
             "name": name,
             "category_ids": cids,
             "service_ids": sids,
+            "price": (price or "").strip(),
+            "terms": clean_terms,
+            "extra_note": (extra_note or "").strip(),
         }
     )
     write_list("plans", items)

@@ -98,6 +98,8 @@ def build_checkout_catalog(services: list, plans: list) -> dict:
                 "name": s.get("name", ""),
                 "price": s.get("price", ""),
                 "amount": parse_price_amount(s.get("price", "")),
+                "terms": [x.strip() for x in (s.get("terms") or []) if isinstance(x, str) and x.strip()],
+                "extra_note": s.get("extra_note", ""),
             }
         )
     plan_rows = []
@@ -108,11 +110,17 @@ def build_checkout_catalog(services: list, plans: list) -> dict:
         if not isinstance(pid, str) or not pid.strip():
             continue
         sids = [x.strip() for x in (p.get("service_ids") or []) if isinstance(x, str) and x.strip()]
+        terms = [x.strip() for x in (p.get("terms") or []) if isinstance(x, str) and x.strip()]
+        price_text = p.get("price", "")
         plan_rows.append(
             {
                 "id": pid.strip(),
                 "name": p.get("name", ""),
                 "service_ids": sids,
+                "price": price_text,
+                "amount": parse_price_amount(price_text),
+                "terms": terms,
+                "extra_note": p.get("extra_note", ""),
             }
         )
     return {"services": srv_rows, "plans": plan_rows}
@@ -244,6 +252,8 @@ def build_order_catalog(services: list, plans: list, customers: list, cat_map: d
                 "amount": parse_price_amount(s.get("price", "")),
                 "categories": labels,
                 "category_ids": [x for x in cids if isinstance(x, str)],
+                "terms": [x.strip() for x in (s.get("terms") or []) if isinstance(x, str) and x.strip()],
+                "extra_note": s.get("extra_note", ""),
             }
         )
     catalog_plans = []
@@ -251,8 +261,18 @@ def build_order_catalog(services: list, plans: list, customers: list, cat_map: d
         if not isinstance(p, dict) or not p.get("id"):
             continue
         sids = [x for x in (p.get("service_ids") or []) if isinstance(x, str) and x.strip()]
+        terms = [x.strip() for x in (p.get("terms") or []) if isinstance(x, str) and x.strip()]
+        price_text = p.get("price", "")
         catalog_plans.append(
-            {"id": p["id"], "name": p.get("name", ""), "service_ids": sids}
+            {
+                "id": p["id"],
+                "name": p.get("name", ""),
+                "service_ids": sids,
+                "price": price_text,
+                "amount": parse_price_amount(price_text),
+                "terms": terms,
+                "extra_note": p.get("extra_note", ""),
+            }
         )
     catalog_customers = []
     for c in customers:
@@ -328,6 +348,11 @@ def create_app():
     def serve_assets(filename: str):
         return send_from_directory(Path(app.root_path) / "assets", filename)
 
+    @app.get("/receipts/<path:filename>")
+    def serve_receipt_file(filename: str):
+        safe_name = Path(filename).name
+        return send_from_directory(Path(app.root_path) / "reciept", safe_name)
+
     @app.post("/add/category")
     def add_category():
         name = request.form.get("name", "")
@@ -358,7 +383,9 @@ def create_app():
             request.form.get("name", ""),
             request.form.getlist("category_ids"),
             request.form.get("price", ""),
-            request.form.get("description", ""),
+            "",
+            [x.strip() for x in request.form.getlist("terms") if isinstance(x, str) and x.strip()],
+            request.form.get("extra_note", ""),
         )
         return redirect(url_for("modir"))
 
@@ -369,7 +396,9 @@ def create_app():
             request.form.get("name", ""),
             request.form.getlist("category_ids"),
             request.form.get("price", ""),
-            request.form.get("description", ""),
+            "",
+            [x.strip() for x in request.form.getlist("terms") if isinstance(x, str) and x.strip()],
+            request.form.get("extra_note", ""),
         )
         return redirect(url_for("modir"))
 
@@ -394,6 +423,9 @@ def create_app():
             request.form.get("name", ""),
             selected_categories,
             merged_services,
+            request.form.get("price", ""),
+            [x.strip() for x in request.form.getlist("terms") if isinstance(x, str) and x.strip()],
+            request.form.get("extra_note", ""),
         )
         return redirect(url_for("modir"))
 
@@ -436,39 +468,74 @@ def create_app():
             for s in services_all
             if isinstance(s, dict) and s.get("id")
         }
+        plan_by_id = {
+            p["id"]: p
+            for p in plans_all
+            if isinstance(p, dict) and isinstance(p.get("id"), str) and p.get("id")
+        }
 
-        merged: set[str] = set()
+        valid_service_ids: list[str] = []
+        seen_service_ids: set[str] = set()
         for sid in service_ids_in:
-            if sid in srv_by_id:
-                merged.add(sid)
+            if sid in srv_by_id and sid not in seen_service_ids:
+                seen_service_ids.add(sid)
+                valid_service_ids.append(sid)
         valid_plan_ids: list[str] = []
+        selected_plan_rows: list[dict] = []
         for pid in plan_ids_in:
-            pl = next(
-                (p for p in plans_all if isinstance(p, dict) and p.get("id") == pid),
-                None,
-            )
+            pl = plan_by_id.get(pid)
             if not pl:
                 continue
             valid_plan_ids.append(pid)
-            for sid in pl.get("service_ids", []) or []:
-                if isinstance(sid, str) and sid.strip() and sid.strip() in srv_by_id:
-                    merged.add(sid.strip())
+            selected_plan_rows.append(pl)
+        if not valid_service_ids and not valid_plan_ids:
+            return jsonify({"ok": False, "error": "no_items"}), 400
 
-        if not merged:
-            return jsonify({"ok": False, "error": "no_services"}), 400
-
-        merged_list = list(merged)
         details: list[dict] = []
         total = 0
-        for sid in merged_list:
+        for sid in valid_service_ids:
             s = srv_by_id[sid]
             total += parse_price_amount(s.get("price", ""))
+            service_terms = [x.strip() for x in (s.get("terms") or []) if isinstance(x, str) and x.strip()]
+            service_extra_note = (s.get("extra_note") or "").strip()
+            legacy_description = (s.get("description") or "").strip()
+            service_desc_parts: list[str] = []
+            if service_terms:
+                service_desc_parts.append("مفاد:")
+                service_desc_parts.extend(f"- {x}" for x in service_terms)
+            if service_extra_note:
+                service_desc_parts.append("توضیحات تکمیلی:")
+                service_desc_parts.append(service_extra_note)
+            if not service_desc_parts and legacy_description:
+                service_desc_parts.append(legacy_description)
             details.append(
                 {
                     "id": sid,
                     "name": s.get("name", ""),
                     "price": s.get("price", ""),
-                    "description": s.get("description", ""),
+                    "description": "\n".join(service_desc_parts),
+                    "terms": service_terms,
+                    "extra_note": service_extra_note,
+                }
+            )
+        selected_plans_for_receipt: list[dict] = []
+        for pl in selected_plan_rows:
+            plan_price_text = pl.get("price", "")
+            total += parse_price_amount(plan_price_text)
+            details.append(
+                {
+                    "id": pl.get("id", ""),
+                    "name": pl.get("name", ""),
+                    "price": plan_price_text,
+                    "description": "",
+                }
+            )
+            selected_plans_for_receipt.append(
+                {
+                    "id": pl.get("id", ""),
+                    "name": pl.get("name", ""),
+                    "terms": [x.strip() for x in (pl.get("terms") or []) if isinstance(x, str) and x.strip()],
+                    "extra_note": (pl.get("extra_note") or "").strip(),
                 }
             )
 
@@ -510,7 +577,7 @@ def create_app():
             cid,
             snapshot,
             valid_plan_ids,
-            merged_list,
+            valid_service_ids,
             details,
             total,
         )
@@ -519,8 +586,17 @@ def create_app():
             customer_snapshot=snapshot,
             services_detail=details,
             total_amount=total,
+            selected_plans=selected_plans_for_receipt,
         )
-        return jsonify({"ok": True, "order_id": oid, "receipt_path": receipt_path})
+        receipt_url = url_for("serve_receipt_file", filename=Path(receipt_path).name)
+        return jsonify(
+            {
+                "ok": True,
+                "order_id": oid,
+                "receipt_path": receipt_path,
+                "receipt_url": receipt_url,
+            }
+        )
 
     return app
 
