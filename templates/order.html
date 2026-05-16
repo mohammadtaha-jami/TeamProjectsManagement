@@ -86,7 +86,10 @@
         <h1 class="bg-gradient-to-l from-white via-neutral-100 to-neutral-400 bg-clip-text text-2xl font-black tracking-tight text-transparent">ثبت سفارش</h1>
         <p class="mt-1 text-sm text-neutral-500">دستهٔ اصلی را انتخاب کن؛ خدمات زیر هر زیردسته جدا نمایش داده می‌شود.</p>
       </div>
-      <a href="{{ url_for('modir') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-sm transition hover:bg-white/10">پنل مدیریت</a>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" id="btn-open-custom-order" class="rounded-xl border border-violet-400/40 bg-violet-500/15 px-4 py-2 text-sm font-semibold text-violet-100 backdrop-blur-sm transition hover:bg-violet-500/25">ثبت سفارش جدید</button>
+        <a href="{{ url_for('modir') }}" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-neutral-200 backdrop-blur-sm transition hover:bg-white/10">پنل مدیریت</a>
+      </div>
     </header>
 
     <section class="mb-5 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-xl shadow-black/40 backdrop-blur-md">
@@ -227,7 +230,7 @@
     <section id="plans-tab" class="tab-panel hidden rounded-2xl border border-white/10 bg-gradient-to-b from-slate-950/80 via-black/50 to-black/80 p-5 backdrop-blur-md">
       <div class="mb-5 flex flex-wrap items-end justify-between gap-2 border-b border-white/10 pb-4">
         <h3 class="bg-gradient-to-l from-white via-fuchsia-200 to-cyan-300 bg-clip-text text-lg font-black text-transparent">پلن‌ها</h3>
-        <span class="text-xs font-medium text-neutral-400">هر کارت: پلن به‌صورت عمودی با فهرست خدمات داخلش</span>
+       
       </div>
       <div class="grid grid-cols-1 justify-items-center gap-8 sm:grid-cols-2 xl:grid-cols-3">
         {% for p in plans %}
@@ -290,6 +293,13 @@
         <input id="customer-phone" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="شماره تماس">
         <input id="customer-address" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" placeholder="آدرس">
       </div>
+      <div class="mt-4 rounded-xl border border-white/10 bg-black/25 p-4">
+        <p class="mb-2 text-xs font-semibold text-neutral-400">نوع فاکتور (پس از ثبت، با دکمهٔ «چاپ فاکتور» PDF ساخته می‌شود)</p>
+        <div class="flex flex-wrap gap-4 text-sm text-neutral-200">
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="invoice-type" value="current" class="accent-fuchsia-500" checked><span>فاکتور فعلی</span></label>
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="invoice-type" value="roadmap" class="accent-amber-500"><span>فاکتور رودمپی</span></label>
+        </div>
+      </div>
       <div class="mt-4">
         <button id="submit-order" type="button" class="rounded-xl bg-gradient-to-l from-fuchsia-600 via-rose-500 to-amber-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fuchsia-500/25 transition hover:brightness-110">ثبت سفارش</button>
       </div>
@@ -300,12 +310,25 @@
   <div id="prefactor-backdrop" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onclick="if(event.target===this) closePrefactor()">
     <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/15 bg-neutral-950/95 p-6 shadow-2xl" onclick="event.stopPropagation()" dir="rtl">
       <h3 class="mb-1 text-lg font-bold text-white">پیش‌فاکتور</h3>
-      <p class="mb-4 text-xs text-neutral-500">موارد زیر پس از تأیید ذخیره و فاکتور صادر می‌شود.</p>
+      <p class="mb-4 text-xs text-neutral-500">موارد زیر پس از تأیید ذخیره می‌شود. PDF فاکتور پس از ثبت با دکمهٔ «چاپ فاکتور» ساخته می‌شود.</p>
       <div id="prefactor-body" class="mb-6 space-y-4 text-sm text-neutral-200"></div>
       <div class="flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
         <button type="button" id="prefactor-cancel" class="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5">انصراف</button>
         <button type="button" id="prefactor-confirm" class="rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/30">تایید و صدور فاکتور</button>
       </div>
+    </div>
+  </div>
+
+  <div id="post-order-backdrop" class="fixed inset-0 z-[93] hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onclick="if(event.target===this) closePostOrderModal()">
+    <div class="w-full max-w-md rounded-2xl border border-white/15 bg-neutral-950/95 p-6 shadow-2xl" onclick="event.stopPropagation()" dir="rtl">
+      <h3 class="mb-1 text-lg font-bold text-white">سفارش ثبت شد</h3>
+      <p id="post-order-text" class="mb-4 text-sm text-neutral-300"></p>
+      <p id="post-order-invoice-hint" class="mb-4 rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs text-neutral-500"></p>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" id="post-order-later" class="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5">بستن</button>
+        <button type="button" id="btn-issue-invoice" class="rounded-xl bg-gradient-to-l from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/30">چاپ فاکتور (PDF)</button>
+      </div>
+      <p id="post-order-issue-msg" class="mt-3 text-xs text-rose-300"></p>
     </div>
   </div>
 
@@ -321,6 +344,62 @@
     </div>
   </div>
 
+  <div id="custom-order-backdrop" class="fixed inset-0 z-[92] hidden items-center justify-center bg-black/75 p-4 backdrop-blur-sm" onclick="if(event.target===this) closeCustomOrderModal()">
+    <div class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-violet-400/25 bg-neutral-950/95 p-5 shadow-2xl md:p-6" onclick="event.stopPropagation()" dir="rtl">
+      <div class="mb-4 flex flex-wrap items-start justify-between gap-2 border-b border-white/10 pb-3">
+        <div>
+          <h3 class="text-lg font-bold text-white">سفارش سفارشی</h3>
+          <p class="mt-1 text-xs text-neutral-500">تعداد مراحل را بزنید؛ در توضیحات هر خط یک مفاد جدا محسوب می‌شود. این سفارش در دیتابیس custom-order ذخیره می‌شود.</p>
+        </div>
+        <button type="button" id="custom-order-close-x" class="shrink-0 rounded-lg border border-white/10 px-2 py-1 text-xs text-neutral-400 hover:bg-white/5">بستن</button>
+      </div>
+
+      <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
+        <p class="mb-2 text-xs font-semibold text-neutral-400">نوع فاکتور</p>
+        <div class="flex flex-wrap gap-4 text-sm text-neutral-200">
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="current" class="accent-fuchsia-500" checked><span>فاکتور فعلی</span></label>
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="simple" class="accent-sky-500"><span>فاکتور ساده</span></label>
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="roadmap" class="accent-amber-500"><span>فاکتور رودمپی</span></label>
+        </div>
+      </div>
+
+      <div id="custom-steps-workflow">
+      <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
+        <label class="mb-2 block text-xs font-semibold text-neutral-400">تعداد مراحل سفارش</label>
+        <div class="flex flex-wrap items-end gap-2">
+          <input id="custom-step-count" type="number" min="1" max="50" value="1" class="w-28 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white focus:border-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500/20">
+          <button type="button" id="btn-custom-apply-steps" class="rounded-xl bg-violet-600/80 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-600">اعمال تعداد مراحل</button>
+        </div>
+      </div>
+
+      <div id="custom-steps-container" class="mb-5 space-y-4"></div>
+      </div>
+
+      <div id="custom-simple-workflow" class="hidden mb-5 space-y-3 rounded-xl border border-sky-500/30 bg-sky-950/20 p-4">
+        <h4 class="text-sm font-bold text-white">خدمات فاکتور ساده</h4>
+        <p class="text-xs text-neutral-400">نام، قیمت واحد (تومان)، تعداد و توضیحات برای هر ردیف. جمع = قیمت واحد × تعداد.</p>
+        <div id="custom-simple-lines-rows" class="space-y-3"></div>
+        <button type="button" id="btn-custom-add-simple-line" class="rounded-xl border border-sky-400/40 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-100 hover:bg-sky-500/30">افزودن ردیف خدمت</button>
+        <p class="text-sm font-semibold text-emerald-200">جمع برآوردی: <span id="custom-simple-lines-total">۰ تومان</span></p>
+      </div>
+
+      <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
+        <h4 class="mb-3 text-sm font-bold text-white">اطلاعات مشتری</h4>
+        <div class="grid gap-3 md:grid-cols-3">
+          <input id="custom-cust-name" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-fuchsia-500/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20" placeholder="نام مشتری (اجباری)">
+          <input id="custom-cust-phone" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="شماره تماس">
+          <input id="custom-cust-address" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" placeholder="آدرس">
+        </div>
+      </div>
+
+      <p id="custom-order-message" class="mb-3 text-sm text-neutral-400"></p>
+      <div class="flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
+        <button type="button" id="btn-custom-order-cancel" class="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5">انصراف</button>
+        <button type="button" id="btn-custom-order-submit" class="rounded-xl bg-gradient-to-l from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-900/30">تایید و ثبت سفارش</button>
+      </div>
+    </div>
+  </div>
+
   <script type="application/json" id="checkout-catalog-json">{{ checkout_catalog | tojson }}</script>
 
   <script>
@@ -331,6 +410,49 @@
 
     var pendingOrderPayload = null;
     var pendingReceiptUrl = '';
+    var pendingIssue = { orderId: '', source: '' };
+
+    function invoiceTypeLabel(v) {
+      if (v === 'simple') return 'فاکتور ساده';
+      if (v === 'roadmap') return 'فاکتور رودمپی';
+      return 'فاکتور فعلی';
+    }
+
+    function getInvoiceType() {
+      var r = document.querySelector('input[name="invoice-type"]:checked');
+      return r ? r.value : 'current';
+    }
+
+    function getCustomInvoiceType() {
+      var r = document.querySelector('input[name="custom-invoice-type"]:checked');
+      return r ? r.value : 'current';
+    }
+
+    function openPostOrderModal(orderId, source, invoiceType) {
+      pendingIssue.orderId = orderId || '';
+      pendingIssue.source = source || '';
+      var bd = document.getElementById('post-order-backdrop');
+      var t = document.getElementById('post-order-text');
+      var h = document.getElementById('post-order-invoice-hint');
+      var m = document.getElementById('post-order-issue-msg');
+      if (m) m.textContent = '';
+      if (t) t.textContent = 'شناسه سفارش: ' + (orderId || '');
+      if (h) {
+        h.textContent = 'نوع فاکتور انتخاب‌شده: ' + invoiceTypeLabel(invoiceType) + ' — برای ساخت و باز کردن PDF روی «چاپ فاکتور» بزنید.';
+      }
+      if (!bd) return;
+      bd.classList.remove('hidden');
+      bd.classList.add('flex');
+    }
+
+    function closePostOrderModal() {
+      var bd = document.getElementById('post-order-backdrop');
+      if (!bd) return;
+      bd.classList.add('hidden');
+      bd.classList.remove('flex');
+      pendingIssue.orderId = '';
+      pendingIssue.source = '';
+    }
 
     function parsePriceAmount(value) {
       if (!value) return 0;
@@ -465,6 +587,53 @@
       pendingReceiptUrl = '';
     }
 
+    function openCustomOrderModal() {
+      var bd = document.getElementById('custom-order-backdrop');
+      if (!bd) return;
+      var om = document.getElementById('custom-order-message');
+      if (om) om.textContent = '';
+      bd.classList.remove('hidden');
+      bd.classList.add('flex');
+      applyCustomStepCount(true);
+      syncCustomModalInvoiceUi();
+    }
+
+    function closeCustomOrderModal() {
+      var bd = document.getElementById('custom-order-backdrop');
+      if (!bd) return;
+      bd.classList.add('hidden');
+      bd.classList.remove('flex');
+    }
+
+    function applyCustomStepCount(silent) {
+      var countEl = document.getElementById('custom-step-count');
+      var msg = document.getElementById('custom-order-message');
+      var cont = document.getElementById('custom-steps-container');
+      if (!countEl || !cont) return;
+      var n = parseInt(countEl.value, 10);
+      if (isNaN(n) || n < 1) {
+        if (!silent && msg) msg.textContent = 'تعداد مراحل باید حداقل ۱ باشد.';
+        return;
+      }
+      if (n > 50) {
+        if (!silent && msg) msg.textContent = 'حداکثر ۵۰ مرحله مجاز است.';
+        return;
+      }
+      if (msg) msg.textContent = '';
+      var html = '';
+      for (var i = 0; i < n; i += 1) {
+        var num = String(i + 1);
+        html += '<div class="custom-step-block rounded-xl border border-violet-500/30 bg-violet-950/20 p-4 shadow-inner">' +
+          '<p class="mb-3 text-xs font-bold text-violet-200">مرحله ' + escapeHtml(num) + '</p>' +
+          '<div class="grid gap-3 md:grid-cols-2">' +
+          '<div><label class="mb-1 block text-[11px] text-neutral-500">عنوان</label><input type="text" class="custom-step-title w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-neutral-600" placeholder="عنوان مرحله"></div>' +
+          '<div><label class="mb-1 block text-[11px] text-neutral-500">نام</label><input type="text" class="custom-step-name w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-neutral-600" placeholder="نام مرحله"></div></div>' +
+          '<div class="mt-3"><label class="mb-1 block text-[11px] text-neutral-500">توضیحات (هر خط یک مورد)</label><textarea rows="4" class="custom-step-desc w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-neutral-600" placeholder="هر خط یک مفاد جدا"></textarea></div>' +
+          '<div class="mt-3 md:max-w-xs"><label class="mb-1 block text-[11px] text-neutral-500">قیمت</label><input type="text" class="custom-step-price w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-neutral-600" placeholder="مثلاً ۱۰٬۰۰۰٬۰۰۰"></div></div>';
+      }
+      cont.innerHTML = html;
+    }
+
     function buildPrefactorHtml(payload, total) {
       var cust = payload.customer || {};
       var lines = '';
@@ -502,10 +671,94 @@
       return lines;
     }
 
+    function isCustomSimpleInvoiceMode() {
+      return getCustomInvoiceType() === 'simple';
+    }
+
+    function syncCustomModalInvoiceUi() {
+      var simple = isCustomSimpleInvoiceMode();
+      var wf = document.getElementById('custom-steps-workflow');
+      var sw = document.getElementById('custom-simple-workflow');
+      if (wf) wf.classList.toggle('hidden', simple);
+      if (sw) sw.classList.toggle('hidden', !simple);
+      if (simple) {
+        var cont = document.getElementById('custom-simple-lines-rows');
+        if (cont && !cont.children.length) addCustomSimpleLineRow();
+        updateCustomSimpleLinesTotal();
+      }
+    }
+
+    function updateCustomSimpleLinesTotal() {
+      var el = document.getElementById('custom-simple-lines-total');
+      if (!el) return;
+      var sum = 0;
+      document.querySelectorAll('#custom-simple-lines-rows .custom-simple-line-row').forEach(function (row) {
+        var p = row.querySelector('.custom-simple-l-price');
+        var q = row.querySelector('.custom-simple-l-qty');
+        var unit = parsePriceAmount(p && p.value ? p.value : '');
+        var n = parseInt(q && q.value ? q.value : '1', 10);
+        if (isNaN(n) || n < 1) n = 1;
+        sum += unit * n;
+      });
+      el.textContent = formatToman(sum);
+    }
+
+    function addCustomSimpleLineRow() {
+      var cont = document.getElementById('custom-simple-lines-rows');
+      if (!cont) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'custom-simple-line-row rounded-xl border border-white/10 bg-black/30 p-3 grid gap-2 md:grid-cols-12 md:items-end';
+      wrap.innerHTML = '<div class="md:col-span-3"><label class="mb-1 block text-[11px] text-neutral-500">نام</label><input type="text" class="custom-simple-l-name w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white" placeholder="نام خدمت"></div>' +
+        '<div class="md:col-span-2"><label class="mb-1 block text-[11px] text-neutral-500">قیمت واحد</label><input type="text" class="custom-simple-l-price w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white"></div>' +
+        '<div class="md:col-span-1"><label class="mb-1 block text-[11px] text-neutral-500">تعداد</label><input type="number" min="1" value="1" class="custom-simple-l-qty w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white"></div>' +
+        '<div class="md:col-span-5"><label class="mb-1 block text-[11px] text-neutral-500">توضیحات</label><textarea rows="2" class="custom-simple-l-desc w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white"></textarea></div>' +
+        '<div class="md:col-span-1 flex md:justify-end"><button type="button" class="btn-remove-custom-simple-line mt-5 rounded-lg border border-rose-500/40 px-2 py-1 text-xs text-rose-200 hover:bg-rose-500/20">حذف</button></div>';
+      cont.appendChild(wrap);
+      updateCustomSimpleLinesTotal();
+    }
+
+    function collectCustomSimpleLinesForSubmit() {
+      var out = [];
+      document.querySelectorAll('#custom-simple-lines-rows .custom-simple-line-row').forEach(function (row) {
+        var name = (row.querySelector('.custom-simple-l-name') && row.querySelector('.custom-simple-l-name').value || '').trim();
+        if (!name) return;
+        var price = (row.querySelector('.custom-simple-l-price') && row.querySelector('.custom-simple-l-price').value || '').trim();
+        var qEl = row.querySelector('.custom-simple-l-qty');
+        var q = parseInt(qEl && qEl.value ? qEl.value : '1', 10);
+        if (isNaN(q) || q < 1) q = 1;
+        var desc = (row.querySelector('.custom-simple-l-desc') && row.querySelector('.custom-simple-l-desc').value || '');
+        out.push({ name: name, price: price, quantity: q, description: desc });
+      });
+      return out;
+    }
+
     function activateFirstTab() {
       var firstTab = document.querySelector('.order-tab');
       if (firstTab) firstTab.click();
     }
+
+    document.querySelectorAll('input[name="custom-invoice-type"]').forEach(function (r) {
+      r.addEventListener('change', syncCustomModalInvoiceUi);
+    });
+    var cslRows = document.getElementById('custom-simple-lines-rows');
+    if (cslRows) {
+      cslRows.addEventListener('click', function (e) {
+        if (!e.target.closest('.btn-remove-custom-simple-line')) return;
+        var row = e.target.closest('.custom-simple-line-row');
+        var cont = document.getElementById('custom-simple-lines-rows');
+        if (cont && cont.children.length > 1 && row) row.remove();
+        else if (row) {
+          row.querySelectorAll('input,textarea').forEach(function (el) {
+            if (el.classList.contains('custom-simple-l-qty')) el.value = '1';
+            else el.value = '';
+          });
+        }
+        updateCustomSimpleLinesTotal();
+      });
+      cslRows.addEventListener('input', updateCustomSimpleLinesTotal);
+    }
+    var btnAddCustomSimple = document.getElementById('btn-custom-add-simple-line');
+    if (btnAddCustomSimple) btnAddCustomSimple.addEventListener('click', addCustomSimpleLineRow);
 
     document.querySelectorAll('.order-tab').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -540,6 +793,7 @@
         service_ids: sel.service_ids,
         plan_ids: sel.plan_ids,
         customer_mode: 'new',
+        invoice_type: getInvoiceType(),
         customer: {
           name: name,
           phone: (document.getElementById('customer-phone').value || '').trim(),
@@ -566,18 +820,13 @@
         .then(function (res) {
           if (res.ok && res.body.ok) {
             document.getElementById('order-message').textContent = 'سفارش با موفقیت ثبت شد.';
-            if (res.body.receipt_path) {
-              document.getElementById('order-message').textContent += ' مسیر فاکتور: ' + res.body.receipt_path;
-            }
             document.querySelectorAll('.item-cb').forEach(function (cb) { cb.checked = false; });
             document.getElementById('customer-name').value = '';
             document.getElementById('customer-phone').value = '';
             document.getElementById('customer-address').value = '';
             updateCart();
             closePrefactor();
-            if (res.body.receipt_url || res.body.receipt_path) {
-              openReceiptPrompt(res.body.receipt_url || '', res.body.receipt_path || '');
-            }
+            openPostOrderModal(res.body.order_id, res.body.source || 'orders', res.body.invoice_type || 'current');
           } else {
             document.getElementById('order-message').textContent = 'ثبت سفارش ناموفق بود.';
           }
@@ -594,6 +843,8 @@
       if (e.key === 'Escape') {
         closePrefactor();
         closeReceiptPrompt();
+        closeCustomOrderModal();
+        closePostOrderModal();
       }
     });
 
@@ -603,6 +854,149 @@
         window.open(pendingReceiptUrl, '_blank');
       }
       closeReceiptPrompt();
+    });
+
+    document.getElementById('post-order-later').addEventListener('click', closePostOrderModal);
+    document.getElementById('btn-issue-invoice').addEventListener('click', function () {
+      var msgEl = document.getElementById('post-order-issue-msg');
+      if (msgEl) msgEl.textContent = '';
+      if (!pendingIssue.orderId || !pendingIssue.source) {
+        if (msgEl) msgEl.textContent = 'شناسه سفارش نامعتبر است.';
+        return;
+      }
+      var btn = document.getElementById('btn-issue-invoice');
+      if (btn) btn.disabled = true;
+      fetch('{{ url_for("issue_invoice") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: pendingIssue.orderId, source: pendingIssue.source })
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.body.ok) {
+            closePostOrderModal();
+            openReceiptPrompt(res.body.receipt_url || '', res.body.receipt_path || '');
+          } else if (msgEl) {
+            var m = (res.body && res.body.message) ? res.body.message : '';
+            if (res.body && res.body.error === 'roadmap_pdf') {
+              msgEl.textContent = m || 'ساخت PDF رودمپ ناموفق بود. Playwright و Chromium را نصب کنید.';
+            } else {
+              msgEl.textContent = m ? ('خطا: ' + m) : 'ساخت PDF ناموفق بود.';
+            }
+          }
+        })
+        .catch(function () {
+          if (msgEl) msgEl.textContent = 'خطای ارتباط با سرور.';
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
+    });
+
+    var btnOpenCustom = document.getElementById('btn-open-custom-order');
+    if (btnOpenCustom) btnOpenCustom.addEventListener('click', openCustomOrderModal);
+    var btnCustomCancel = document.getElementById('btn-custom-order-cancel');
+    if (btnCustomCancel) btnCustomCancel.addEventListener('click', closeCustomOrderModal);
+    var btnCustomCloseX = document.getElementById('custom-order-close-x');
+    if (btnCustomCloseX) btnCustomCloseX.addEventListener('click', closeCustomOrderModal);
+    var btnApplySteps = document.getElementById('btn-custom-apply-steps');
+    if (btnApplySteps) btnApplySteps.addEventListener('click', function () { applyCustomStepCount(false); });
+
+    document.getElementById('btn-custom-order-submit').addEventListener('click', function () {
+      var msg = document.getElementById('custom-order-message');
+      var mainMsg = document.getElementById('order-message');
+      if (msg) msg.textContent = '';
+      var name = (document.getElementById('custom-cust-name').value || '').trim();
+      if (!name) {
+        if (msg) msg.textContent = 'نام مشتری الزامی است.';
+        return;
+      }
+      var customerPayload = {
+        name: name,
+        phone: (document.getElementById('custom-cust-phone').value || '').trim(),
+        address: (document.getElementById('custom-cust-address').value || '').trim()
+      };
+      var invType = getCustomInvoiceType();
+      var body;
+      if (invType === 'simple') {
+        var simpleLines = collectCustomSimpleLinesForSubmit();
+        if (!simpleLines.length) {
+          if (msg) msg.textContent = 'حداقل یک ردیف خدمت با نام پر کنید.';
+          return;
+        }
+        for (var j = 0; j < simpleLines.length; j += 1) {
+          if (!parsePriceAmount(simpleLines[j].price || '')) {
+            if (msg) msg.textContent = 'برای هر ردیف قیمت واحد معتبر (بزرگ‌تر از صفر) وارد کنید.';
+            return;
+          }
+        }
+        body = {
+          invoice_type: 'simple',
+          simple_lines: simpleLines,
+          customer: customerPayload
+        };
+      } else {
+        var blocks = document.querySelectorAll('.custom-step-block');
+        if (!blocks.length) {
+          if (msg) msg.textContent = 'ابتدا تعداد مراحل را اعمال کنید.';
+          return;
+        }
+        var steps = [];
+        for (var i = 0; i < blocks.length; i += 1) {
+          var b = blocks[i];
+          var ti = b.querySelector('.custom-step-title');
+          var nm = b.querySelector('.custom-step-name');
+          var title = (ti && ti.value ? ti.value : '').trim();
+          var stepName = (nm && nm.value ? nm.value : '').trim();
+          if (!title && !stepName) {
+            if (msg) msg.textContent = 'در مرحله ' + (i + 1) + ' حداقل یکی از فیلدهای عنوان یا نام را پر کنید.';
+            return;
+          }
+          var ta = b.querySelector('.custom-step-desc');
+          var pr = b.querySelector('.custom-step-price');
+          var desc = ta ? ta.value : '';
+          var price = (pr && pr.value ? pr.value : '').trim();
+          steps.push({ title: title, name: stepName, description: desc, price: price });
+        }
+        body = {
+          steps: steps,
+          invoice_type: invType,
+          customer: customerPayload
+        };
+      }
+      var btn = document.getElementById('btn-custom-order-submit');
+      if (btn) btn.disabled = true;
+      fetch('{{ url_for("create_custom_order") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.body.ok) {
+            if (mainMsg) mainMsg.textContent = 'سفارش سفارشی ثبت شد. شناسه: ' + (res.body.order_id || '');
+            document.getElementById('custom-cust-name').value = '';
+            document.getElementById('custom-cust-phone').value = '';
+            document.getElementById('custom-cust-address').value = '';
+            var csl = document.getElementById('custom-simple-lines-rows');
+            if (csl) csl.innerHTML = '';
+            closeCustomOrderModal();
+            openPostOrderModal(res.body.order_id, res.body.source || 'custom-order', res.body.invoice_type || 'current');
+          } else if (msg) {
+            msg.textContent = 'ثبت ناموفق بود.';
+            if (res.body && res.body.error === 'name') msg.textContent = 'نام مشتری الزامی است.';
+            else if (res.body && res.body.error === 'no_steps') msg.textContent = 'مرحله‌ای ثبت نشده.';
+            else if (res.body && res.body.error === 'no_simple_lines') msg.textContent = 'حداقل یک ردیف فاکتور ساده لازم است.';
+            else if (res.body && res.body.error === 'simple_line_name') msg.textContent = 'نام هر ردیف الزامی است.';
+            else if (res.body && res.body.error === 'step_title_or_name') msg.textContent = 'در هر مرحله عنوان یا نام را پر کنید.';
+          }
+        })
+        .catch(function () {
+          if (msg) msg.textContent = 'خطای ارتباط با سرور.';
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
     });
 
     activateFirstTab();

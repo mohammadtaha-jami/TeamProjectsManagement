@@ -5,6 +5,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_from_
 from json_store import (
     append_category,
     append_customer,
+    append_custom_order,
     append_order,
     append_plan,
     append_service,
@@ -12,6 +13,7 @@ from json_store import (
     delete_customer_by_id,
     delete_service_by_id,
     find_customer,
+    find_order_by_source,
     normalize_categories,
     parse_price_amount,
     read_list,
@@ -19,7 +21,7 @@ from json_store import (
     update_customer_row,
     update_service,
 )
-from receipt_pdf import create_receipt_pdf
+from receipt_pdf import issue_invoice_for_stored_order
 
 
 def build_category_groups(categories: list) -> list:
@@ -294,6 +296,12 @@ def build_order_catalog(services: list, plans: list, customers: list, cat_map: d
 
 def create_app():
     app = Flask(__name__)
+
+    def normalize_invoice_type(raw) -> str:
+        t = str(raw or "current").strip()
+        if t not in ("current", "simple", "roadmap"):
+            return "current"
+        return t
 
     def admin_context() -> dict:
         categories = normalize_categories(read_list("categories"))
@@ -573,6 +581,9 @@ def create_app():
                 "address": (cust_in.get("address") or "").strip(),
             }
 
+        inv_t = normalize_invoice_type(data.get("invoice_type"))
+        if inv_t == "simple":
+            inv_t = "current"
         oid = append_order(
             cid,
             snapshot,
@@ -580,23 +591,171 @@ def create_app():
             valid_service_ids,
             details,
             total,
+            invoice_type=inv_t,
+            selected_plans_snapshot=selected_plans_for_receipt,
         )
-        receipt_path = create_receipt_pdf(
-            order_id=oid,
-            customer_snapshot=snapshot,
-            services_detail=details,
-            total_amount=total,
-            selected_plans=selected_plans_for_receipt,
-        )
-        receipt_url = url_for("serve_receipt_file", filename=Path(receipt_path).name)
         return jsonify(
             {
                 "ok": True,
                 "order_id": oid,
-                "receipt_path": receipt_path,
-                "receipt_url": receipt_url,
+                "source": "orders",
+                "invoice_type": inv_t,
             }
         )
+
+    @app.post("/custom-orders")
+    def create_custom_order():
+        data = request.get_json(silent=True) or {}
+        inv_t = normalize_invoice_type(data.get("invoice_type"))
+
+        def parse_positive_int(val, minimum: int = 1) -> int:
+            if isinstance(val, bool):
+                return minimum
+            if isinstance(val, int):
+                return max(minimum, val)
+            if isinstance(val, float):
+                return max(minimum, int(val))
+            s = str(val or "").strip()
+            for i, d in enumerate("۰۱۲۳۴۵۶۷۸۹"):
+                s = s.replace(d, str(i))
+            digits = "".join(c for c in s if c.isdigit())
+            if not digits:
+                return minimum
+            return max(minimum, int(digits))
+
+        cust_in = data.get("customer") or {}
+        name = (cust_in.get("name") or "").strip()
+        if not name:
+            return jsonify({"ok": False, "error": "name"}), 400
+
+        if inv_t == "simple":
+            lines_in = data.get("simple_lines") or []
+            if not isinstance(lines_in, list) or not lines_in:
+                return jsonify({"ok": False, "error": "no_simple_lines"}), 400
+            simple_lines_out: list[dict] = []
+            total = 0
+            for i, raw in enumerate(lines_in):
+                if not isinstance(raw, dict):
+                    continue
+                nm = (raw.get("name") or "").strip()
+                if not nm:
+                    return jsonify({"ok": False, "error": "simple_line_name", "index": i}), 400
+                qty = parse_positive_int(raw.get("quantity"), minimum=1)
+                raw_price = raw.get("price")
+                if isinstance(raw_price, (int, float)):
+                    price_text = str(int(raw_price)) if float(raw_price) == int(raw_price) else str(raw_price)
+                else:
+                    price_text = (str(raw_price) if raw_price is not None else "").strip()
+                unit = parse_price_amount(price_text)
+                line_total = unit * qty
+                total += line_total
+                desc = (raw.get("description") or "")
+                desc_text = desc if isinstance(desc, str) else ""
+                desc_stripped = desc_text.strip()
+                simple_lines_out.append(
+                    {
+                        "name": nm,
+                        "price": price_text,
+                        "unit_amount": unit,
+                        "quantity": qty,
+                        "description": desc_stripped,
+                        "line_total": line_total,
+                    }
+                )
+            if not simple_lines_out:
+                return jsonify({"ok": False, "error": "no_simple_lines"}), 400
+
+            new_id = append_customer(
+                name,
+                cust_in.get("phone", ""),
+                cust_in.get("address", ""),
+            )
+            if not new_id:
+                return jsonify({"ok": False, "error": "customer_create"}), 400
+            snapshot = {
+                "name": name,
+                "phone": (cust_in.get("phone") or "").strip(),
+                "address": (cust_in.get("address") or "").strip(),
+            }
+            oid = append_custom_order(
+                new_id,
+                snapshot,
+                [],
+                total,
+                invoice_type="simple",
+                simple_lines=simple_lines_out,
+            )
+            return jsonify({"ok": True, "order_id": oid, "source": "custom-order", "invoice_type": "simple"})
+
+        steps_in = data.get("steps")
+        if not isinstance(steps_in, list) or not steps_in:
+            return jsonify({"ok": False, "error": "no_steps"}), 400
+
+        steps_out: list[dict] = []
+        total = 0
+        for i, raw in enumerate(steps_in):
+            if not isinstance(raw, dict):
+                continue
+            title = (raw.get("title") or "").strip()
+            step_name = (raw.get("name") or "").strip()
+            if not title and not step_name:
+                return jsonify({"ok": False, "error": "step_title_or_name", "step_index": i}), 400
+            desc = raw.get("description") or ""
+            desc_text = desc if isinstance(desc, str) else ""
+            lines = [ln.strip() for ln in desc_text.splitlines() if ln.strip()]
+            raw_price = raw.get("price")
+            if isinstance(raw_price, (int, float)):
+                price_text = str(int(raw_price)) if float(raw_price) == int(raw_price) else str(raw_price)
+            else:
+                price_text = (str(raw_price) if raw_price is not None else "").strip()
+            amt = parse_price_amount(price_text)
+            total += amt
+            steps_out.append(
+                {
+                    "title": title,
+                    "name": step_name,
+                    "description_lines": lines,
+                    "price": price_text,
+                    "price_amount": amt,
+                }
+            )
+
+        if not steps_out:
+            return jsonify({"ok": False, "error": "no_valid_steps"}), 400
+
+        new_id = append_customer(
+            name,
+            cust_in.get("phone", ""),
+            cust_in.get("address", ""),
+        )
+        if not new_id:
+            return jsonify({"ok": False, "error": "customer_create"}), 400
+        snapshot = {
+            "name": name,
+            "phone": (cust_in.get("phone") or "").strip(),
+            "address": (cust_in.get("address") or "").strip(),
+        }
+        oid = append_custom_order(new_id, snapshot, steps_out, total, invoice_type=inv_t)
+        return jsonify({"ok": True, "order_id": oid, "source": "custom-order", "invoice_type": inv_t})
+
+    @app.post("/issue-invoice")
+    def issue_invoice():
+        data = request.get_json(silent=True) or {}
+        src = (data.get("source") or "").strip()
+        oid = (data.get("order_id") or "").strip()
+        if src not in ("orders", "custom-order") or not oid:
+            return jsonify({"ok": False, "error": "bad_request"}), 400
+        row = find_order_by_source(src, oid)
+        if not row:
+            return jsonify({"ok": False, "error": "not_found"}), 404
+        try:
+            receipt_path = issue_invoice_for_stored_order(src, row)
+        except RuntimeError as e:
+            return jsonify({"ok": False, "error": "roadmap_pdf", "message": str(e)}), 500
+        except Exception as e:
+            return jsonify({"ok": False, "error": "pdf_failed", "message": str(e)}), 500
+        receipt_url = url_for("serve_receipt_file", filename=Path(receipt_path).name)
+        return jsonify({"ok": True, "receipt_path": receipt_path, "receipt_url": receipt_url})
 
     return app
 

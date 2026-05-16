@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ doc_title }}</title>
+    
+    <style>
+        {% if dana_font_uri %}
+        @font-face {
+            font-family: "Dana";
+            src: url("{{ dana_font_uri }}") format("truetype");
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        {% endif %}
+        :root {
+            --navy: #1B2A4A;
+            --dark-navy: #0F1A2E;
+            --gold: #C9A84C;
+            --light-gold: #D4BC6E;
+            --cream: #F8F4EB;
+            --white: #FFFFFF;
+            --text: #2C2C2C;
+            --text-light: #5A5A5A;
+            --border: #D4C9B8;
+            --shadow: 0 4px 20px rgba(27, 42, 74, 0.08);
+            --shadow-lg: 0 10px 40px rgba(27, 42, 74, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: "Dana", "Tahoma", ui-sans-serif, system-ui, sans-serif;
+            background: #EAE5D9;
+            color: var(--text);
+            line-height: 1.8;
+            margin: 0;
+            min-height: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-feature-settings: "ss01" 1, "ss02" 1, "ss03" 1;
+        }
+
+        /* Main Container - سایز A4 برای PDF؛ فوتر به انتهای صفحه می‌چسبد وقتی محتوا کوتاه است */
+        .resume-container {
+            max-width: 900px;
+            width: 100%;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 40px);
+            background: var(--white);
+            box-shadow: var(--shadow-lg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Decorative Top Border */
+        .resume-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--navy) 0%, var(--navy) 40%, var(--gold) 40%, var(--gold) 60%, var(--navy) 60%, var(--navy) 100%);
+            z-index: 10;
+        }
+
+        /* ---- HEADER ---- */
+        .header {
+            background: var(--navy);
+            color: var(--white);
+            padding: 40px 55px 35px;
+            text-align: center;
+            position: relative;
+            border-bottom: 3px solid var(--gold);
+        }
+
+        /* لوگو - بدون بک‌گراند */
+        .logo-container {
+            margin-bottom: 25px;
+            display: inline-block;
+            position: relative;
+        }
+        .logo-container img {
+            height: 85px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            transition: var(--transition);
+        }
+        .logo-container:hover img {
+            filter: drop-shadow(0 6px 16px rgba(201, 168, 76, 0.5));
+        }
+        /* اگر لوگو وجود نداشت، این متن جایگزین */
+        .logo-fallback {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        .header-accent {
+            width: 80px;
+            height: 2px;
+            background: var(--gold);
+            margin: 0 auto 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.85);
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .header .divider-dot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 10px;
+        }
+        .header .divider-dot span {
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .header .divider-dot .line {
+            width: 50px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .header .tagline {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--light-gold);
+            letter-spacing: 1px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        /* ---- MAIN BODY ---- */
+        .main-body {
+            flex: 1 1 auto;
+            padding: 45px 55px 50px;
+            background: var(--white);
+        }
+
+        /* Intro Section */
+        .intro-section {
+            text-align: center;
+            margin-bottom: 45px;
+            padding-bottom: 35px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        .intro-section::after {
+            content: '♦';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            padding: 0 15px;
+            color: var(--gold);
+            font-size: 0.8rem;
+        }
+        .intro-section p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 2.2;
+            font-weight: 500;
+        }
+        .intro-section .highlight {
+            color: var(--navy);
+            font-weight: 800;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--navy);
+            text-align: center;
+            margin-bottom: 35px;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 2px;
+            background: var(--gold);
+            margin: 12px auto 0;
+        }
+
+        /* Steps Container */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Single Step Card */
+        .step-card {
+            display: flex;
+            align-items: stretch;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            transition: var(--transition);
+            background: var(--white);
+            position: relative;
+        }
+        .step-card:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        /* Step Number Badge */
+        .step-number {
+            background: var(--navy);
+            color: var(--white);
+            min-width: 75px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px;
+            position: relative;
+        }
+        .step-number .num {
+            font-size: 2.6rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--gold);
+        }
+        .step-number .step-label {
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 600;
+        }
+        .step-number::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 15px;
+            bottom: 15px;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Step Content */
+        .step-content {
+            flex: 1;
+            padding: 22px 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .step-content h3 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--navy);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .step-content .step-eng {
+            font-size: 0.75rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .step-content .description {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 2;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .step-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .step-content ul li {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            padding-right: 18px;
+            position: relative;
+            margin-bottom: 4px;
+            line-height: 1.9;
+            font-weight: 500;
+        }
+        .step-content ul li::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        /* Price Tag */
+        .price-tag {
+            display: inline-block;
+            background: var(--cream);
+            color: var(--navy);
+            font-weight: 800;
+            font-size: 0.95rem;
+            padding: 7px 16px;
+            border-radius: 3px;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            border-right: 3px solid var(--gold);
+            align-self: flex-start;
+        }
+        .price-tag.variable {
+            border-right-color: var(--navy);
+            background: #F0EDE5;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Future Step */
+        .step-card.future {
+            background: #FAFAF8;
+            border-style: dashed;
+            border-color: #B8B0A0;
+        }
+        .step-card.future .step-number {
+            background: #2E3D5C;
+        }
+        .step-card.future .step-content h3 {
+            color: #2E3D5C;
+        }
+
+        /* ---- FOOTER ---- */
+        .footer {
+            margin-top: auto;
+            flex-shrink: 0;
+            background: var(--navy);
+            color: rgba(255, 255, 255, 0.85);
+            text-align: center;
+            padding: 30px 55px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            border-top: 3px solid var(--gold);
+            font-weight: 500;
+        }
+        .footer .company-name {
+            font-size: 1.4rem;
+            color: var(--white);
+            font-weight: 900;
+            margin-bottom: 6px;
+            letter-spacing: 3px;
+        }
+        .footer .contact-placeholder {
+            color: var(--light-gold);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        .footer .footer-line {
+            width: 40px;
+            height: 1px;
+            background: var(--gold);
+            margin: 12px auto;
+        }
+
+        /* ----- استایل مخصوص چاپ و PDF ----- */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0.8cm;
+            }
+            html, body {
+                height: auto;
+                min-height: 100%;
+            }
+            body {
+                background: white;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .resume-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100%;
+                flex: 1 1 auto;
+                min-height: calc(100vh - 1.6cm);
+                min-height: calc(100% - 0px);
+            }
+            .step-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .step-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .header {
+                background: var(--navy) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .step-number {
+                background: var(--navy) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .footer {
+                background: var(--navy) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                margin-top: auto;
+            }
+            .logo-container img {
+                filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .header {
+                padding: 35px 25px 30px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .main-body {
+                padding: 30px 20px 35px;
+            }
+            .step-card {
+                flex-direction: column;
+            }
+            .step-number {
+                flex-direction: row;
+                min-width: auto;
+                padding: 14px 20px;
+                gap: 15px;
+                justify-content: flex-start;
+            }
+            .step-number::after {
+                display: none;
+            }
+            .step-number .num {
+                font-size: 1.8rem;
+            }
+            .step-content {
+                padding: 18px 20px;
+            }
+            .footer {
+                padding: 25px 20px;
+            }
+            .logo-container img {
+                height: 65px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="resume-container">
+
+        <!-- ============ HEADER ============ -->
+        <header class="header">
+            
+            <!-- لوگو - کاملاً بدون بک‌گراند -->
+            <div class="logo-container">
+                <img src="{{ logo_src }}" alt="لوگوی بالتازار" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="logo-fallback">B A L T A Z A R</span>
+            </div>
+
+            <div class="header-accent"></div>
+            <h1>{{ header_title }}</h1>
+            <div class="subtitle">{{ header_subtitle }}</div>
+            <div class="divider-dot">
+                <span class="line"></span><span></span><span class="line"></span>
+            </div>
+            <div class="tagline">{{ tagline }}</div>
+        </header>
+
+        <!-- ============ MAIN BODY ============ -->
+        <main class="main-body">
+
+            <!-- Intro -->
+            <div class="intro-section">
+                <p>{{ intro_paragraph }}</p>
+            </div>
+
+            <!-- Section Title -->
+            <div class="section-title">{{ section_title }}</div>
+
+            <div class="steps-container">
+                {% for s in roadmap_steps %}
+                <div class="step-card{% if s.is_future %} future{% endif %}">
+                    <div class="step-number">
+                        <span class="num">{{ s.num_fa }}</span>
+                        <span class="step-label">مرحله</span>
+                    </div>
+                    <div class="step-content">
+                        <h3>{{ s.heading }}</h3>
+                        {% if s.subtitle %}
+                        <span class="step-eng">{{ s.subtitle }}</span>
+                        {% endif %}
+                        {% if s.lead %}
+                        <p class="description">{{ s.lead }}</p>
+                        {% endif %}
+                        {% if s.bullets %}
+                        <ul>
+                            {% for it in s.bullets %}
+                            <li>{{ it }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        <span class="price-tag{% if s.price_variable %} variable{% endif %}">{{ s.price_label }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </main>
+
+        <!-- ============ FOOTER (ثابت مطابق factor-template) ============ -->
+        <footer class="footer">
+            <div class="company-name">B A L T A Z A R</div>
+            <div>تیم توسعه برندینگ بالتازار</div>
+            <div class="footer-line"></div>
+            <div class="contact-placeholder">آماده‌اید قدم اول را با قدرت بردارید؟</div>
+            <div class="contact-placeholder" style="margin-top: 4px;">[ 09330257089 ]</div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

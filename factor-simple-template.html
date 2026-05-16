@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاکتور فروش | بالتازار پلاس</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: #f2f5f9;
+            display: flex;
+            justify-content: center;
+            padding: 25px;
+            color: #1e293b;
+        }
+
+        .invoice {
+            width: 210mm;
+            min-height: 297mm;
+            background: #ffffff;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 18mm 20mm 20mm 20mm;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .brand-text {
+            font-weight: 800;
+            font-size: 26px;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text span {
+            color: #2563eb;
+        }
+
+        .invoice-title {
+            font-size: 29px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .meta-item {
+            display: flex;
+            gap: 6px;
+        }
+
+        .meta-item strong {
+            color: #334155;
+        }
+
+        .seller-box {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .seller-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .seller-info p {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 15px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        td {
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid #e9eef2;
+            color: #1e293b;
+        }
+
+        .item-name {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .final-box {
+            width: 100%;
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px 18px;
+        }
+
+        .final-box table {
+            width: 100%;
+            margin: 0;
+        }
+
+        .final-box td {
+            border-bottom: none;
+            padding: 6px 8px;
+            font-size: 15px;
+            text-align: left;
+        }
+
+        .final-row td {
+            font-weight: 800;
+            font-size: 17px;
+            color: #0f172a;
+            border-top: 2px solid #2563eb;
+            padding-top: 8px;
+        }
+
+        /* بخش جدید هزینه‌ها */
+        .costs-section {
+            margin-top: 30px;
+            border-top: 2px dashed #cbd5e1;
+            padding-top: 20px;
+        }
+        .costs-title {
+            font-weight: 800;
+            font-size: 16px;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+        .cost-item {
+            background: #fafcff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .cost-text {
+            font-family: 'Vazirmatn', monospace;
+            color: #1e293b;
+            letter-spacing: 0.2px;
+        }
+
+        .stamp-hint {
+            margin-top: 40px;
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+                width: 210mm;
+                min-height: 297mm;
+                padding: 15mm 17mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <!-- هدر -->
+        <div class="header">
+            <div class="logo-area">
+                <img src="dfkmny.png" alt="Balthazar Plus" class="logo-img">
+                <div class="brand-text">BALTAZAR<span>+</span></div>
+            </div>
+            <div class="invoice-title">فاکتور رسمی فروش</div>
+        </div>
+
+        <!-- ردیف اطلاعاتی -->
+        <div class="meta-row">
+            <div class="meta-item"><strong>شماره فاکتور:</strong> INV-51437</div>
+            <div class="meta-item"><strong>تاریخ:</strong> ۷ اردیبهشت ۱۴۰۴</div>
+        </div>
+
+        <!-- فروشنده -->
+        <div class="seller-box">
+            <div class="seller-info">
+                <h4>فروشنده: تیم بالتازار پلاس</h4>
+                <p>
+                    آدرس: احمدآباد، میدان راهنمایی، بلوار شهید صادقی، صادقی۱۲، توفیق۱۳، پلاک ۹۳<br>
+                    شماره تماس: <strong>۰۹۱۵۰۴۰۲۶۵۰</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- جدول آیتم‌ها -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>شرح کالا / خدمات</th>
+                    <th>تعداد</th>
+                    <th>قیمت واحد (تومان)</th>
+                    <th>قیمت کل (تومان)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>۱</td>
+                    <td class="item-name">افزونه اختصاصی مانگا (طراحی و پیاده‌سازی)</td>
+                    <td>۱</td>
+                    <td>۱۰,۰۰۰,۰۰۰</td>
+                    <td>۱۰,۰۰۰,۰۰۰</td>
+                </tr>
+                <tr>
+                    <td>۲</td>
+                    <td class="item-name">طراحی بنر اختصاصی</td>
+                    <td>۲</td>
+                    <td>۵۰۰,۰۰۰</td>
+                    <td>۱,۰۰۰,۰۰۰</td>
+                </tr>
+                <tr>
+                    <td>۳</td>
+                    <td class="item-name">طراحی کاراکتر اختصاصی</td>
+                    <td>۴</td>
+                    <td>۱۵۰,۰۰۰</td>
+                    <td>۶۰۰,۰۰۰</td>
+                </tr>
+                <tr>
+                    <td>۴</td>
+                    <td class="item-name">طراحی پوستر</td>
+                    <td>۳</td>
+                    <td>۲۰۰,۰۰۰</td>
+                    <td>۶۰۰,۰۰۰</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- جمع نهایی -->
+        <div class="total-section">
+            <div class="final-box">
+                <table>
+                    <tr class="final-row"><td style="text-align: right; font-size: 15;">جمع کل:</td><td style="text-align: left;">۱۲,۲۰۰,۰۰۰ تومان</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="stamp-hint">این فاکتور توسط سیستم مالی بالتازار پلاس صادر شده و معتبر است.</div>
+    </div>
+</body>
+</html>

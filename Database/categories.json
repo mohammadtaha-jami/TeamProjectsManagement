@@ -1,3 +1,20 @@
 [
-  
+  {
+    "id": "1818de33-eb55-4882-8f75-bfe12fb16e08",
+    "name": "طراحی و توسعه وب",
+    "kind": "parent",
+    "parent_id": null
+  },
+  {
+    "id": "80153e75-9cf3-45ac-942f-fa66fd7e4f5d",
+    "name": "آنالیز کسب و کار",
+    "kind": "parent",
+    "parent_id": null
+  },
+  {
+    "id": "ada00bf4-d564-45ff-8a1f-df15cc7e8907",
+    "name": "سئو",
+    "kind": "parent",
+    "parent_id": null
+  }
 ]

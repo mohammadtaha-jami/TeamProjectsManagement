@@ -12,6 +12,7 @@ _FILES = {
     "plans": _BASE / "plans.json",
     "customers": _BASE / "customers.json",
     "orders": _BASE / "orders.json",
+    "custom-order": _BASE / "custom-order.json",
 }
 
 
@@ -248,6 +249,16 @@ def find_customer(customers: list, cid: str) -> dict | None:
     return None
 
 
+def find_order_by_source(source: str, order_id: str) -> dict | None:
+    key = "orders" if source == "orders" else "custom-order" if source == "custom-order" else None
+    if not key:
+        return None
+    for row in read_list(key):
+        if isinstance(row, dict) and row.get("id") == order_id:
+            return row
+    return None
+
+
 def append_order(
     customer_id: str,
     customer_snapshot: dict,
@@ -255,22 +266,75 @@ def append_order(
     merged_service_ids: list[str],
     services_detail: list[dict],
     total_amount: int,
+    *,
+    invoice_type: str = "current",
+    selected_plans_snapshot: list[dict] | None = None,
+    simple_lines: list[dict] | None = None,
 ) -> str:
     oid = str(uuid4())
     items = read_list("orders")
-    items.append(
-        {
-            "id": oid,
-            "created_at": datetime.now().isoformat(timespec="seconds"),
-            "customer_id": customer_id,
-            "customer": customer_snapshot,
-            "plan_ids": plan_ids,
-            "service_ids": merged_service_ids,
-            "services_detail": services_detail,
-            "total_price": total_amount,
-        }
-    )
+    it = (invoice_type or "current").strip()
+    if it not in ("current", "simple", "roadmap"):
+        it = "current"
+    snap = selected_plans_snapshot if isinstance(selected_plans_snapshot, list) else []
+    clean_snap: list[dict] = []
+    for p in snap:
+        if not isinstance(p, dict) or not p.get("id"):
+            continue
+        clean_snap.append(
+            {
+                "id": p["id"],
+                "name": p.get("name", ""),
+                "terms": [x.strip() for x in (p.get("terms") or []) if isinstance(x, str) and x.strip()],
+                "extra_note": (p.get("extra_note") or "").strip(),
+            }
+        )
+    row: dict = {
+        "id": oid,
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "customer_id": customer_id,
+        "customer": customer_snapshot,
+        "plan_ids": plan_ids,
+        "service_ids": merged_service_ids,
+        "services_detail": services_detail,
+        "total_price": total_amount,
+        "invoice_type": it,
+        "selected_plans_snapshot": clean_snap,
+    }
+    if isinstance(simple_lines, list) and simple_lines:
+        row["simple_lines"] = simple_lines
+    items.append(row)
     write_list("orders", items)
+    return oid
+
+
+def append_custom_order(
+    customer_id: str,
+    customer_snapshot: dict,
+    steps: list[dict],
+    total_amount: int,
+    *,
+    invoice_type: str = "current",
+    simple_lines: list[dict] | None = None,
+) -> str:
+    oid = str(uuid4())
+    items = read_list("custom-order")
+    it = (invoice_type or "current").strip()
+    if it not in ("current", "simple", "roadmap"):
+        it = "current"
+    row: dict = {
+        "id": oid,
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "customer_id": customer_id,
+        "customer": customer_snapshot,
+        "steps": steps if isinstance(steps, list) else [],
+        "total_price": total_amount,
+        "invoice_type": it,
+    }
+    if isinstance(simple_lines, list) and simple_lines:
+        row["simple_lines"] = simple_lines
+    items.append(row)
+    write_list("custom-order", items)
     return oid
 
 
