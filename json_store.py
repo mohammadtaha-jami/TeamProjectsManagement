@@ -316,11 +316,12 @@ def append_custom_order(
     *,
     invoice_type: str = "current",
     simple_lines: list[dict] | None = None,
+    panel_plans: list[dict] | None = None,
 ) -> str:
     oid = str(uuid4())
     items = read_list("custom-order")
     it = (invoice_type or "current").strip()
-    if it not in ("current", "simple", "roadmap"):
+    if it not in ("current", "simple", "roadmap", "panel"):
         it = "current"
     row: dict = {
         "id": oid,
@@ -333,6 +334,8 @@ def append_custom_order(
     }
     if isinstance(simple_lines, list) and simple_lines:
         row["simple_lines"] = simple_lines
+    if isinstance(panel_plans, list) and panel_plans:
+        row["panel_plans"] = panel_plans
     items.append(row)
     write_list("custom-order", items)
     return oid
@@ -345,10 +348,10 @@ def append_service(
     description: str = "",
     terms: list[str] | None = None,
     extra_note: str = "",
-) -> None:
+) -> str | None:
     name = (name or "").strip()
     if not name:
-        return
+        return None
     ids = []
     for x in category_ids or []:
         if isinstance(x, str) and x.strip():
@@ -364,9 +367,10 @@ def append_service(
             continue
         seen_terms.add(t)
         clean_terms.append(t)
+    sid = str(uuid4())
     items.append(
         {
-            "id": str(uuid4()),
+            "id": sid,
             "name": name,
             "category_ids": ids,
             "price": (price or "").strip(),
@@ -376,6 +380,7 @@ def append_service(
         }
     )
     write_list("services", items)
+    return sid
 
 
 def update_service(

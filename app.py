@@ -299,9 +299,13 @@ def create_app():
 
     def normalize_invoice_type(raw) -> str:
         t = str(raw or "current").strip()
-        if t not in ("current", "simple", "roadmap"):
+        if t not in ("current", "panel", "simple", "roadmap"):
             return "current"
         return t
+
+    PANEL_TIER_KEYS = frozenset(
+        {"economic", "bronze", "silver", "gold", "diamond", "exclusive"}
+    )
 
     def admin_context() -> dict:
         categories = normalize_categories(read_list("categories"))
@@ -687,6 +691,103 @@ def create_app():
             )
             return jsonify({"ok": True, "order_id": oid, "source": "custom-order", "invoice_type": "simple"})
 
+        if inv_t == "panel":
+            plans_in = data.get("panel_plans") or []
+            if not isinstance(plans_in, list) or not plans_in:
+                return jsonify({"ok": False, "error": "no_panel_plans"}), 400
+            panel_out: list[dict] = []
+            total = 0
+            for i, raw in enumerate(plans_in):
+                if not isinstance(raw, dict):
+                    continue
+                tier = str(raw.get("tier") or "").strip()
+                if tier not in PANEL_TIER_KEYS:
+                    return jsonify({"ok": False, "error": "bad_panel_tier", "index": i}), 400
+                raw_price = raw.get("price")
+                if isinstance(raw_price, (int, float)):
+                    price_text = (
+                        str(int(raw_price))
+                        if float(raw_price) == int(raw_price)
+                        else str(raw_price)
+                    )
+                else:
+                    price_text = (str(raw_price) if raw_price is not None else "").strip()
+                negotiable = tier == "exclusive" or bool(raw.get("negotiable"))
+                if negotiable:
+                    price_amount = 0
+                else:
+                    price_amount = parse_price_amount(price_text)
+                    if price_amount <= 0:
+                        return (
+                            jsonify({"ok": False, "error": "panel_price", "index": i}),
+                            400,
+                        )
+                    total += price_amount
+                services_in = raw.get("services") or []
+                if not isinstance(services_in, list):
+                    services_in = []
+                svc_out: list[dict] = []
+                for j, sraw in enumerate(services_in):
+                    if isinstance(sraw, str):
+                        nm = sraw.strip()
+                        sid = ""
+                    elif isinstance(sraw, dict):
+                        nm = (sraw.get("name") or "").strip()
+                        sid = (sraw.get("service_id") or "").strip()
+                    else:
+                        continue
+                    if not nm:
+                        return (
+                            jsonify(
+                                {"ok": False, "error": "panel_service_name", "plan_index": i, "service_index": j}
+                            ),
+                            400,
+                        )
+                    svc_out.append({"name": nm, "service_id": sid})
+                if not svc_out:
+                    lines_txt = raw.get("services_text") or ""
+                    if isinstance(lines_txt, str):
+                        for ln in lines_txt.splitlines():
+                            t = ln.strip()
+                            if t:
+                                svc_out.append({"name": t, "service_id": ""})
+                if not svc_out:
+                    return jsonify({"ok": False, "error": "panel_no_services", "index": i}), 400
+                panel_out.append(
+                    {
+                        "tier": tier,
+                        "price": price_text,
+                        "price_amount": price_amount,
+                        "negotiable": negotiable,
+                        "services": svc_out,
+                    }
+                )
+            if not panel_out:
+                return jsonify({"ok": False, "error": "no_panel_plans"}), 400
+            new_id = append_customer(
+                name,
+                cust_in.get("phone", ""),
+                cust_in.get("address", ""),
+            )
+            if not new_id:
+                return jsonify({"ok": False, "error": "customer_create"}), 400
+            snapshot = {
+                "name": name,
+                "phone": (cust_in.get("phone") or "").strip(),
+                "address": (cust_in.get("address") or "").strip(),
+            }
+            oid = append_custom_order(
+                new_id,
+                snapshot,
+                [],
+                total,
+                invoice_type="panel",
+                panel_plans=panel_out,
+            )
+            return jsonify(
+                {"ok": True, "order_id": oid, "source": "custom-order", "invoice_type": "panel"}
+            )
+
         steps_in = data.get("steps")
         if not isinstance(steps_in, list) or not steps_in:
             return jsonify({"ok": False, "error": "no_steps"}), 400
@@ -737,6 +838,77 @@ def create_app():
         }
         oid = append_custom_order(new_id, snapshot, steps_out, total, invoice_type=inv_t)
         return jsonify({"ok": True, "order_id": oid, "source": "custom-order", "invoice_type": inv_t})
+
+    @app.get("/api/customers/search")
+    def api_customers_search():
+        q = (request.args.get("q") or "").strip().lower()
+        limit = min(20, max(1, int(request.args.get("limit") or 12)))
+        customers = read_list("customers")
+        out: list[dict] = []
+        for c in customers:
+            if not isinstance(c, dict):
+                continue
+            cid = c.get("id")
+            nm = (c.get("name") or "").strip()
+            phone = (c.get("phone") or "").strip()
+            if not isinstance(cid, str) or not cid or not nm:
+                continue
+            hay = f"{nm} {phone}".lower()
+            if q and q not in hay:
+                continue
+            out.append(
+                {
+                    "id": cid,
+                    "name": nm,
+                    "phone": phone,
+                    "address": (c.get("address") or "").strip(),
+                }
+            )
+            if len(out) >= limit:
+                break
+        return jsonify({"ok": True, "items": out})
+
+    @app.get("/api/services/search")
+    def api_services_search():
+        q = (request.args.get("q") or "").strip().lower()
+        limit = min(20, max(1, int(request.args.get("limit") or 12)))
+        services = read_list("services")
+        out: list[dict] = []
+        for s in services:
+            if not isinstance(s, dict):
+                continue
+            sid = s.get("id")
+            nm = (s.get("name") or "").strip()
+            if not isinstance(sid, str) or not sid or not nm:
+                continue
+            if q and q not in nm.lower():
+                continue
+            out.append({"id": sid, "name": nm})
+            if len(out) >= limit:
+                break
+        return jsonify({"ok": True, "items": out})
+
+    @app.post("/api/services/quick")
+    def api_services_quick():
+        data = request.get_json(silent=True) or {}
+        nm = (data.get("name") or "").strip()
+        if not nm:
+            return jsonify({"ok": False, "error": "name"}), 400
+        services = read_list("services")
+        for s in services:
+            if isinstance(s, dict) and (s.get("name") or "").strip() == nm:
+                return jsonify(
+                    {
+                        "ok": True,
+                        "id": s.get("id"),
+                        "name": nm,
+                        "created": False,
+                    }
+                )
+        sid = append_service(nm, [], "", "", [], "")
+        if not sid:
+            return jsonify({"ok": False, "error": "create"}), 500
+        return jsonify({"ok": True, "id": sid, "name": nm, "created": True})
 
     @app.post("/issue-invoice")
     def issue_invoice():

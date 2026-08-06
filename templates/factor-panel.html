@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>{{ doc_title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        {% if dana_font_uri %}
+        @font-face {
+            font-family: "Dana";
+            src: url("{{ dana_font_uri }}") format("truetype");
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        {% endif %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafd 0%, #eff3fc 100%);
+            font-family: "Dana", "Tahoma", ui-sans-serif, system-ui, sans-serif;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            display: block;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 15% 30%, rgba(0,90,156,0.02) 0%, rgba(255,212,59,0.01) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .premium-container {
+            max-width: 1500px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            background: transparent;
+        }
+
+        .panel-sheet {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 1.5rem 1.25rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .panel-sheet--page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* ============ هدر (مطابق factor-plan-template) ============ */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            padding: 0.5rem 0 0.5rem;
+        }
+
+        .logo-container {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container img {
+            max-width: 120px;
+            height: auto;
+            display: block;
+        }
+
+        .logo-fallback {
+            font-family: "Dana", monospace;
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            background: linear-gradient(125deg, #005A9C, #FFD43B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: none;
+        }
+
+        .header-accent {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #005A9C, #FFD43B);
+            margin: 0.6rem auto 0.5rem;
+            border-radius: 4px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #1f3b4c;
+            margin: 0.4rem 0 0.15rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #005A9C;
+            font-weight: 600;
+            background: rgba(0,90,156,0.08);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            margin: 0.4rem 0;
+        }
+
+        .divider-dot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0.75rem 0;
+        }
+        .divider-dot .line {
+            width: 40px;
+            height: 2px;
+            background: #FFD43B;
+            border-radius: 2px;
+        }
+        .divider-dot span:not(.line) {
+            width: 8px;
+            height: 8px;
+            background: #005A9C;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .tagline {
+            font-size: 0.82rem;
+            color: #5b6f82;
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: 500;
+        }
+
+        .contact-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 0.45rem 1.4rem;
+            border-radius: 60px;
+            width: fit-content;
+            margin: 1rem auto 0;
+            border: 1px solid rgba(0, 90, 156, 0.25);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .contact-info-header > i.fa-headset {
+            font-size: 1rem;
+            color: #005A9C;
+        }
+
+        .contact-label {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #1f3b4c;
+            border-left: 1px solid rgba(0,90,156,0.3);
+            padding-left: 10px;
+            margin-left: 2px;
+        }
+
+        .contact-number {
+            direction: ltr;
+            font-family: monospace;
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: #005A9C;
+            background: rgba(0,90,156,0.05);
+            padding: 0.15rem 0.65rem;
+            border-radius: 40px;
+            letter-spacing: 0.5px;
+        }
+
+        .contact-number i {
+            font-size: 0.75rem;
+            margin-left: 4px;
+            color: #FFD43B;
+        }
+
+        /* ============ شبکه دو ستونه ============ */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 1.15rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            align-content: start;
+        }
+
+        .premium-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(2px);
+            border-radius: 22px;
+            padding: 1rem 0.9rem 1.15rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 90, 156, 0.18);
+            box-shadow: 0 16px 28px -12px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            -webkit-column-break-inside: avoid;
+        }
+
+        .premium-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, #005A9C, #FFD43B);
+            border-radius: 22px 0 0 22px;
+            opacity: 0.45;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+            color: #1f3b4c;
+        }
+
+        .service-list {
+            list-style: none;
+            margin: 0.45rem 0 0.65rem;
+            flex: 1;
+        }
+
+        .service-list li {
+            padding: 0.35rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(0, 90, 156, 0.07);
+            font-size: 0.72rem;
+            color: #1f2e3a;
+            line-height: 1.35;
+        }
+
+        .service-list li span {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .service-list li i {
+            width: 16px;
+            min-width: 16px;
+            font-size: 0.78rem;
+            color: #FFD43B;
+            flex-shrink: 0;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .price-wrapper {
+            margin-top: auto;
+            padding-top: 0.55rem;
+            border-top: 2px dashed rgba(0,90,156,0.12);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .price-tag {
+            background: rgba(0,90,156,0.08);
+            border-radius: 60px;
+            padding: 0.28rem 0.85rem;
+            font-weight: 800;
+            font-size: 0.82rem;
+            color: #005A9C;
+            border: 1px solid rgba(0,90,156,0.25);
+            display: inline-flex;
+            align-items: baseline;
+            gap: 3px;
+        }
+
+        .price-tag small {
+            font-size: 0.62rem;
+            font-weight: 500;
+            color: #3f6b8c;
+        }
+
+        .economic-card .price-tag { background: rgba(34,139,34,0.1); color: #2d6a3f; border-color: #3cb37160; }
+        .economic-card .card-header h2 { color: #2d6a3f; }
+        .bronze-card .price-tag { background: rgba(205,127,50,0.1); color: #b65c24; border-color: #CD7F3260; }
+        .bronze-card .card-header h2 { color: #a45d2e; }
+        .silver-card .price-tag { background: rgba(192,192,192,0.18); color: #536878; border-color: #C0C0C080; }
+        .silver-card .card-header h2 { color: #5f6b7a; }
+        .gold-card .price-tag { background: rgba(255,215,0,0.12); color: #c27e0a; border-color: #FFD43B; }
+        .gold-card .card-header h2 { color: #b67e1a; }
+        .gold-card { background: linear-gradient(135deg, #ffffff, #fffcf0); }
+        .diamond-card .price-tag { background: rgba(0,90,156,0.08); color: #005A9C; border-color: #b0e0ff; }
+        .diamond-card .card-header h2 { color: #1f6392; }
+        .exclusive-card .price-tag { background: rgba(255,212,59,0.2); color: #c27e0a; border-color: #FFD43B; }
+        .exclusive-card .card-header h2 {
+            background: linear-gradient(125deg, #005A9C, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .graphic-sparkle {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            font-size: 1.1rem;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm 14mm;
+            }
+            html, body {
+                height: auto;
+                min-height: 0;
+            }
+            body {
+                background: #f8fafd;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body::before {
+                display: none;
+            }
+            .panel-sheet {
+                padding: 0;
+                max-width: 100%;
+            }
+            .panel-sheet--page-break {
+                page-break-before: always;
+                break-before: page;
+            }
+            .cards-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            .premium-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.08);
+            }
+            .header {
+                margin-bottom: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="premium-container">
+    {% set pages = panel_pages if panel_pages else [{'cards': panel_cards, 'is_first': true, 'is_last': true, 'page_break': false}] %}
+    {% for page in pages %}
+    <section class="panel-sheet{% if page.page_break %} panel-sheet--page-break{% endif %}">
+        {% if page.is_first %}
+        <header class="header">
+            <div class="logo-container">
+                {% if logo_src %}<img src="{{ logo_src }}" alt="لوگوی بالتازار" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">{% endif %}
+                <span class="logo-fallback">B A L T A Z A R</span>
+            </div>
+            <div class="header-accent"></div>
+            <h1>تیم برندینگ بالتازار</h1>
+            <div class="subtitle">توسعه برند و رشد کسب‌وکار</div>
+            <div class="divider-dot">
+                <span class="line"></span><span></span><span class="line"></span>
+            </div>
+            <div class="tagline">از ویترین تا جامعه‌ای وفادار، مسیر برند شما حرفه‌ای ساخته می‌شود.</div>
+            <div class="contact-info-header">
+                <i class="fas fa-headset" aria-hidden="true"></i>
+                <span class="contact-label">اطلاعات تماس</span>
+                <span class="contact-number">
+                    <i class="fas fa-phone-alt" aria-hidden="true"></i> {{ contact_phone or '۰۹۳۳۰۲۵۷۰۸۹' }}
+                </span>
+            </div>
+        </header>
+        {% endif %}
+
+        <div class="cards-grid">
+            {% for card in page.cards %}
+            <article class="premium-card {{ card.card_class }}">
+                <div class="card-header">
+                    <h2>{{ card.title }}</h2>
+                </div>
+                <ul class="service-list">
+                    {% for svc in card.services %}
+                    <li><i class="{{ svc.icon or 'fas fa-check-circle' }}" aria-hidden="true"></i><span>{{ svc.text }}</span></li>
+                    {% endfor %}
+                </ul>
+                <div class="price-wrapper">
+                    <div class="price-tag">{{ card.price_main }} <small>{{ card.price_small }}</small></div>
+                </div>
+                <div class="graphic-sparkle"><i class="{{ card.sparkle_icon or 'fas fa-star' }}" aria-hidden="true"></i></div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+</div>
+
+<script>
+    document.querySelectorAll('.service-list li i').forEach(function (icon) {
+        icon.style.lineHeight = '1.35';
+        if (!icon.className || icon.className.indexOf('fa-') === -1) {
+            icon.className = 'fas fa-check-circle';
+        }
+    });
+    const logoImg = document.querySelector('.logo-container img');
+    if (logoImg && logoImg.complete && logoImg.naturalWidth === 0) {
+        logoImg.style.display = 'none';
+        const fallback = document.querySelector('.logo-fallback');
+        if (fallback) fallback.style.display = 'block';
+    } else if (logoImg) {
+        logoImg.onerror = function () {
+            this.style.display = 'none';
+            const fallbackSpan = document.querySelector('.logo-fallback');
+            if (fallbackSpan) fallbackSpan.style.display = 'block';
+        };
+    }
+</script>
+</body>
+</html>

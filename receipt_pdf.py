@@ -607,7 +607,7 @@ def _html_to_pdf_playwright(html: str, pdf_path: Path) -> None:
         try:
             page = browser.new_page()
             page.set_viewport_size({"width": 900, "height": 1123})
-            page.set_content(html, wait_until="load", timeout=120_000)
+            page.set_content(html, wait_until="networkidle", timeout=120_000)
             page.emulate_media(media="print")
             page.pdf(
                 path=str(pdf_path),
@@ -766,6 +766,285 @@ def custom_order_to_services_detail(row: dict) -> list[dict]:
     return out
 
 
+PANEL_TIER_META: dict[str, dict[str, str]] = {
+    "economic": {
+        "title": "اقتصادی",
+        "card_class": "economic-card",
+        "badge_text": "شروع هوشمند برند",
+        "badge_icon": "fas fa-seedling",
+        "sparkle_icon": "fas fa-leaf",
+    },
+    "bronze": {
+        "title": "برنز ای",
+        "card_class": "bronze-card",
+        "badge_text": "گارانتی کیفیت کدنویسی",
+        "badge_icon": "fas fa-award",
+        "sparkle_icon": "fas fa-leaf",
+    },
+    "silver": {
+        "title": "نقره ای",
+        "card_class": "silver-card",
+        "badge_text": "عملکرد فوق سریع",
+        "badge_icon": "fas fa-tachometer-alt",
+        "sparkle_icon": "fas fa-star-of-life",
+    },
+    "gold": {
+        "title": "طلایی",
+        "card_class": "gold-card",
+        "badge_text": "پرفروش‌ترین پنل حرفه‌ای",
+        "badge_icon": "fas fa-fire",
+        "sparkle_icon": "fas fa-crown",
+    },
+    "diamond": {
+        "title": "الماسی",
+        "card_class": "diamond-card",
+        "badge_text": "ادیشن لوکس و بی‌نظیر",
+        "badge_icon": "fas fa-gem",
+        "sparkle_icon": "fas fa-glasses",
+    },
+    "exclusive": {
+        "title": "اختصاصی",
+        "card_class": "exclusive-card",
+        "badge_text": "ویژه برندهای بین‌المللی",
+        "badge_icon": "fas fa-champagne-glasses",
+        "sparkle_icon": "fas fa-infinity",
+    },
+}
+
+_SERVICE_ICON_RULES: list[tuple[tuple[str, ...], str]] = [
+    (("ssl", "گواهی", "امنیت", "قفل"), "fas fa-lock"),
+    (("موبایل", "ریسپانسیو", "تبلت"), "fas fa-mobile-alt"),
+    (("سئو", "xml", "نقشه سایت"), "fas fa-chart-simple"),
+    (("react", "vue", "نکست", "spa", "pwa", "لاراول", "node", "full-stack", "داینامیک"), "fas fa-code"),
+    (("صفحه", "بلاگ", "محتوا"), "fas fa-file-alt"),
+    (("گالری", "تصویر", "ویدیو", "اینفوگرافیک"), "fas fa-images"),
+    (("پشتیبانی", "رفع باگ", "vip"), "fas fa-headset"),
+    (("الماس", "لوکس"), "fas fa-diamond"),
+    (("سرعت", "عملکرد", "بهینه", "ابری", "بارگذاری"), "fas fa-tachometer-alt"),
+    (("بکاپ", "دیتابیس", "database"), "fas fa-database"),
+    (("api", "درگاه", "اتصال", "plug"), "fas fa-plug"),
+    (("بانک", "shield", "امنیت پیشرفته"), "fas fa-shield-alt"),
+    (("پنل مدیریت", "داشبورد"), "fas fa-chalkboard-user"),
+    (("هاست", "دامنه", "server"), "fas fa-server"),
+    (("مشاوره", "ممتاز", "دائم", "۲۴"), "fas fa-hand-holding-heart"),
+    (("برند", "دی‌ان‌ای", "منحصربه‌فرد", "palette"), "fas fa-palette"),
+    (("مارکت", "شبکه اجتماعی", "cogs", "قابلیت"), "fas fa-cogs"),
+    (("تیم", "ui/ux", "کاربر"), "fas fa-users"),
+    (("رقبا", "استراتژی", "آنالیز"), "fas fa-search-dollar"),
+    (("انیمیشن", "افکت", "magic"), "fas fa-magic"),
+    (("طلایی", "gem", "پریمیوم"), "fas fa-gem"),
+    (("وردپرس", "شرکتی"), "fas fa-check-circle"),
+    (("فرم تماس",), "fas fa-check-circle"),
+    (("رشد", "chart"), "fas fa-chart-line"),
+    (("آپلود", "cloud"), "fas fa-cloud-upload-alt"),
+    (("مشاوره آنلاین", "concierge"), "fas fa-concierge-bell"),
+]
+
+
+def pick_service_icon(service_name: str) -> str:
+    """همهٔ خدمات پلن با آیکون تیک یکسان نمایش داده می‌شوند."""
+    return "fas fa-check-circle"
+
+
+def _panel_price_display(plan: dict) -> tuple[str, str]:
+    if plan.get("negotiable") or plan.get("tier") == "exclusive":
+        return "توافقی", "متناسب با پروژه"
+    raw = (plan.get("price") or "").strip()
+    amt = int(plan.get("price_amount") or 0)
+    if raw and not raw.replace(",", "").replace("٬", "").isdigit():
+        parts = raw.split()
+        main = parts[0] if parts else raw
+        small = " ".join(parts[1:]) if len(parts) > 1 else "تومان"
+        return _fa_digits(main), _fa_digits(small) if small != "تومان" else "تومان"
+    if amt > 0:
+        return _fa_digits(f"{amt:,}"), "تومان"
+    return _fa_digits(raw) if raw else "—", "تومان"
+
+
+def _estimate_panel_card_height_mm(card: dict, scale: float = 1.0) -> float:
+    """تخمین ارتفاع کارت برای چیدمان دو ستونه (میلی‌متر)."""
+    n = len(card.get("services") or [])
+    return (64.0 + n * 6.5) * scale
+
+
+def _row_height_mm(card_a: dict, card_b: dict | None, scale: float) -> float:
+    h_a = _estimate_panel_card_height_mm(card_a, scale)
+    if card_b is None:
+        return h_a
+    h_b = _estimate_panel_card_height_mm(card_b, scale)
+    return max(h_a, h_b)
+
+
+def _remaining_rows_height_mm(
+    cards: list[dict], start: int, row_gap_mm: float, scale: float
+) -> float:
+    if start >= len(cards):
+        return 0.0
+    total = 0.0
+    i = start
+    first = True
+    while i < len(cards):
+        if not first:
+            total += row_gap_mm
+        c2 = cards[i + 1] if i + 1 < len(cards) else None
+        total += _row_height_mm(cards[i], c2, scale)
+        i += 2 if c2 else 1
+        first = False
+    return total
+
+
+def _paginate_panel_at_scale(
+    cards: list[dict], scale: float, row_gap_mm: float
+) -> list[dict]:
+    """صفحه‌بندی دو ستونه: هر ردیف حداکثر ۲ پلن؛ ردیفی که جا نشود به صفحه بعد."""
+    first_page_mm = 118.0
+    next_page_mm = 252.0
+
+    pages: list[dict] = []
+    idx = 0
+    page_index = 0
+
+    while idx < len(cards):
+        is_first = page_index == 0
+        base_avail = first_page_mm if is_first else next_page_mm
+        page_cards: list[dict] = []
+        used_mm = 0.0
+
+        while idx < len(cards):
+            remaining = base_avail - used_mm
+            avail = remaining
+
+            c2 = cards[idx + 1] if idx + 1 < len(cards) else None
+            row_h = _row_height_mm(cards[idx], c2, scale)
+            gap = row_gap_mm if page_cards else 0.0
+
+            if page_cards and used_mm + gap + row_h > avail:
+                break
+
+            if not page_cards and row_h > avail:
+                if c2:
+                    page_cards.extend([cards[idx], cards[idx + 1]])
+                    idx += 2
+                else:
+                    page_cards.append(cards[idx])
+                    idx += 1
+                used_mm += row_h
+                break
+
+            if used_mm + gap + row_h <= avail or not page_cards:
+                used_mm += (gap if page_cards else 0.0) + row_h
+                if c2:
+                    page_cards.extend([cards[idx], cards[idx + 1]])
+                    idx += 2
+                else:
+                    page_cards.append(cards[idx])
+                    idx += 1
+            else:
+                break
+
+        pages.append(
+            {
+                "cards": page_cards,
+                "is_first": is_first,
+                "is_last": idx >= len(cards),
+                "page_break": page_index > 0,
+            }
+        )
+        page_index += 1
+
+    if pages:
+        pages[-1]["is_last"] = True
+    return pages
+
+
+def paginate_panel_cards(cards: list[dict]) -> list[dict]:
+    """چیدمان دو ستونه؛ پلن‌های اضافه در ردیف‌های بعدی یا صفحه بعد."""
+    if not cards:
+        return [
+            {
+                "cards": [],
+                "is_first": True,
+                "is_last": True,
+                "page_break": False,
+            }
+        ]
+
+    row_gap_mm = 10.0
+    return _paginate_panel_at_scale(cards, 1.0, row_gap_mm)
+
+
+def build_panel_invoice_context(row: dict) -> dict:
+    project_root = Path(__file__).resolve().parent
+    logo_path = project_root / "assets" / "images" / "logo.png"
+    if not logo_path.is_file():
+        logo_path = project_root / "assetes" / "images" / "logo.png"
+    logo_src = logo_path.resolve().as_uri() if logo_path.is_file() else ""
+    dana_path = project_root / "assets" / "fonts" / "Dana-Black.ttf"
+    if not dana_path.is_file():
+        dana_path = project_root / "assetes" / "fonts" / "Dana-Black.ttf"
+    dana_font_uri = dana_path.resolve().as_uri() if dana_path.is_file() else ""
+
+    cards: list[dict] = []
+    for raw in row.get("panel_plans") or []:
+        if not isinstance(raw, dict):
+            continue
+        tier = str(raw.get("tier") or "bronze").strip()
+        meta = PANEL_TIER_META.get(tier, PANEL_TIER_META["bronze"])
+        services_html: list[dict] = []
+        for svc in raw.get("services") or []:
+            if isinstance(svc, dict):
+                nm = (svc.get("name") or "").strip()
+            elif isinstance(svc, str):
+                nm = svc.strip()
+            else:
+                continue
+            if not nm:
+                continue
+            icon = pick_service_icon(nm) or "fas fa-check-circle"
+            services_html.append({"text": nm, "icon": icon})
+        price_main, price_small = _panel_price_display(raw)
+        cards.append(
+            {
+                "title": meta["title"],
+                "card_class": meta["card_class"],
+                "services": services_html,
+                "price_main": price_main,
+                "price_small": price_small,
+                "sparkle_icon": meta["sparkle_icon"],
+            }
+        )
+
+    panel_pages = paginate_panel_cards(cards)
+
+    return {
+        "doc_title": "پنل‌های تیم برندینگ بالتازار پلاس",
+        "dana_font_uri": dana_font_uri,
+        "logo_src": logo_src,
+        "panel_cards": cards,
+        "panel_pages": panel_pages,
+        "contact_phone": "۰۹۳۳۰۲۵۷۰۸۹",
+    }
+
+
+def render_panel_invoice_html(ctx: dict) -> str:
+    templates_dir = Path(__file__).resolve().parent / "templates"
+    env = Environment(
+        loader=FileSystemLoader(str(templates_dir)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
+    return env.get_template("factor-panel.html").render(**ctx)
+
+
+def create_panel_invoice_pdf(*, order_id: str, row: dict) -> str:
+    ctx = build_panel_invoice_context(row)
+    html = render_panel_invoice_html(ctx)
+    output_dir = Path(__file__).resolve().parent / "reciept"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    file_path = output_dir / f"invoice-{order_id}.pdf"
+    _html_to_pdf_playwright(html, file_path)
+    return str(file_path)
+
+
 def issue_invoice_for_stored_order(source: str, row: dict) -> str:
     if not isinstance(row, dict):
         raise ValueError("bad_order")
@@ -774,7 +1053,7 @@ def issue_invoice_for_stored_order(source: str, row: dict) -> str:
         raise ValueError("bad_order_id")
     oid = oid.strip()
     it = (row.get("invoice_type") or "current").strip()
-    if it not in ("current", "simple", "roadmap"):
+    if it not in ("current", "panel", "simple", "roadmap"):
         it = "current"
     customer = row.get("customer") or {}
     total = int(row.get("total_price") or 0)
@@ -784,6 +1063,9 @@ def issue_invoice_for_stored_order(source: str, row: dict) -> str:
 
     if it == "simple":
         return create_simple_invoice_pdf(order_id=oid, row=row)
+
+    if it == "panel":
+        return create_panel_invoice_pdf(order_id=oid, row=row)
 
     if source == "custom-order":
         details = custom_order_to_services_detail(row)

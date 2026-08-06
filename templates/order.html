@@ -59,6 +59,17 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.2);
     }
+    .svc-ac-wrap { position: relative; }
+    .svc-ac-list {
+      position: absolute; z-index: 40; top: 100%; right: 0; left: 0; margin-top: 4px;
+      max-height: 11rem; overflow-y: auto; border-radius: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.12); background: #0a0a0a; box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    }
+    .svc-ac-item {
+      display: block; width: 100%; text-align: right; padding: 0.5rem 0.75rem;
+      font-size: 0.8rem; color: #e5e5e5; cursor: pointer;
+    }
+    .svc-ac-item:hover, .svc-ac-item.svc-ac-active { background: rgba(217,70,239,0.2); color: #fff; }
   </style>
 </head>
 <body class="order-page text-neutral-100 antialiased">
@@ -357,13 +368,20 @@
       <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
         <p class="mb-2 text-xs font-semibold text-neutral-400">نوع فاکتور</p>
         <div class="flex flex-wrap gap-4 text-sm text-neutral-200">
-          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="current" class="accent-fuchsia-500" checked><span>فاکتور فعلی</span></label>
+          <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="panel" class="accent-fuchsia-500" checked><span>فاکتور پنلی</span></label>
           <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="simple" class="accent-sky-500"><span>فاکتور ساده</span></label>
           <label class="flex cursor-pointer items-center gap-2"><input type="radio" name="custom-invoice-type" value="roadmap" class="accent-amber-500"><span>فاکتور رودمپی</span></label>
         </div>
       </div>
 
-      <div id="custom-steps-workflow">
+      <div id="custom-panel-workflow" class="mb-5 space-y-3 rounded-xl border border-fuchsia-500/30 bg-fuchsia-950/15 p-4">
+        <h4 class="text-sm font-bold text-white">پلن‌های فاکتور پنلی</h4>
+        <p class="text-xs text-neutral-400">نوع پلن، قیمت و خدمات (هر خط یک خدمت — با جستجوی Ajax).</p>
+        <div id="custom-panel-plans-container" class="space-y-4"></div>
+        <button type="button" id="btn-custom-add-panel-plan" class="rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/20 px-4 py-2 text-sm font-semibold text-fuchsia-100 hover:bg-fuchsia-500/30">افزودن پلن</button>
+        <p class="text-sm font-semibold text-emerald-200">جمع برآوردی: <span id="custom-panel-plans-total">۰ تومان</span></p>
+      </div>
+      <div id="custom-steps-workflow" class="hidden">
       <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
         <label class="mb-2 block text-xs font-semibold text-neutral-400">تعداد مراحل سفارش</label>
         <div class="flex flex-wrap items-end gap-2">
@@ -386,7 +404,10 @@
       <div class="mb-5 rounded-xl border border-white/10 bg-black/35 p-4">
         <h4 class="mb-3 text-sm font-bold text-white">اطلاعات مشتری</h4>
         <div class="grid gap-3 md:grid-cols-3">
-          <input id="custom-cust-name" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-fuchsia-500/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20" placeholder="نام مشتری (اجباری)">
+          <div class="svc-ac-wrap">
+            <input id="custom-cust-name" type="text" autocomplete="off" data-customer-id="" class="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-fuchsia-500/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20" placeholder="نام مشتری (اجباری)">
+            <ul id="custom-cust-ac-list" class="svc-ac-list hidden"></ul>
+          </div>
           <input id="custom-cust-phone" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-sky-500/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="شماره تماس">
           <input id="custom-cust-address" type="text" class="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" placeholder="آدرس">
         </div>
@@ -415,8 +436,20 @@
     function invoiceTypeLabel(v) {
       if (v === 'simple') return 'فاکتور ساده';
       if (v === 'roadmap') return 'فاکتور رودمپی';
+      if (v === 'panel') return 'فاکتور پنلی';
       return 'فاکتور فعلی';
     }
+
+    var PANEL_TIER_OPTIONS = [
+      { value: 'economic', label: 'اقتصادی' },
+      { value: 'bronze', label: 'برنزی' },
+      { value: 'silver', label: 'نقره\u200cای' },
+      { value: 'gold', label: 'طلایی' },
+      { value: 'diamond', label: 'الماسی' },
+      { value: 'exclusive', label: 'اختصاصی (قیمت توافقی)' }
+    ];
+    var svcSearchTimer = null;
+    var custSearchTimer = null;
 
     function getInvoiceType() {
       var r = document.querySelector('input[name="invoice-type"]:checked');
@@ -594,7 +627,7 @@
       if (om) om.textContent = '';
       bd.classList.remove('hidden');
       bd.classList.add('flex');
-      applyCustomStepCount(true);
+      if (isCustomRoadmapInvoiceMode()) applyCustomStepCount(true);
       syncCustomModalInvoiceUi();
     }
 
@@ -675,17 +708,244 @@
       return getCustomInvoiceType() === 'simple';
     }
 
+    function isCustomPanelInvoiceMode() {
+      return getCustomInvoiceType() === 'panel';
+    }
+
+    function isCustomRoadmapInvoiceMode() {
+      return getCustomInvoiceType() === 'roadmap';
+    }
+
     function syncCustomModalInvoiceUi() {
+      var panel = isCustomPanelInvoiceMode();
       var simple = isCustomSimpleInvoiceMode();
+      var roadmap = isCustomRoadmapInvoiceMode();
       var wf = document.getElementById('custom-steps-workflow');
+      var pw = document.getElementById('custom-panel-workflow');
       var sw = document.getElementById('custom-simple-workflow');
-      if (wf) wf.classList.toggle('hidden', simple);
+      if (wf) wf.classList.toggle('hidden', !roadmap);
+      if (pw) pw.classList.toggle('hidden', !panel);
       if (sw) sw.classList.toggle('hidden', !simple);
       if (simple) {
         var cont = document.getElementById('custom-simple-lines-rows');
         if (cont && !cont.children.length) addCustomSimpleLineRow();
         updateCustomSimpleLinesTotal();
       }
+      if (panel) {
+        var pc = document.getElementById('custom-panel-plans-container');
+        if (pc && !pc.children.length) addCustomPanelPlanBlock();
+        updateCustomPanelPlansTotal();
+      }
+    }
+
+    function panelTierSelectHtml(selected) {
+      var h = '';
+      PANEL_TIER_OPTIONS.forEach(function (o) {
+        h += '<option value="' + escapeHtml(o.value) + '"' + (o.value === selected ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>';
+      });
+      return h;
+    }
+
+    function onPanelTierChange(block) {
+      var sel = block.querySelector('.panel-plan-tier');
+      var priceIn = block.querySelector('.panel-plan-price');
+      if (!sel || !priceIn) return;
+      var ex = sel.value === 'exclusive';
+      priceIn.disabled = ex;
+      priceIn.placeholder = ex ? 'قیمت توافقی' : 'مثلاً ۱۲٬۹۰۰٬۰۰۰';
+      if (ex) priceIn.value = '';
+      updateCustomPanelPlansTotal();
+    }
+
+    function addCustomPanelServiceRow(planBlock) {
+      var list = planBlock.querySelector('.panel-plan-services-list');
+      if (!list) return;
+      var row = document.createElement('div');
+      row.className = 'panel-svc-row flex gap-2 items-start';
+      row.innerHTML = '<motion class="svc-ac-wrap flex-1"><input type="text" class="panel-svc-input w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white" placeholder="نام خدمت" autocomplete="off" data-service-id=""><ul class="svc-ac-list hidden"></ul></motion><button type="button" class="btn-remove-panel-svc shrink-0 rounded-lg border border-rose-500/40 px-2 py-2 text-xs text-rose-200 hover:bg-rose-500/20">حذف</button>'.replace(/motion/g, 'div');
+      list.appendChild(row);
+      bindServiceAutocomplete(row.querySelector('.panel-svc-input'));
+    }
+
+    function addCustomPanelPlanBlock() {
+      var cont = document.getElementById('custom-panel-plans-container');
+      if (!cont) return;
+      var block = document.createElement('div');
+      block.className = 'custom-panel-plan-block rounded-xl border border-fuchsia-500/25 bg-black/30 p-4 space-y-3';
+      block.innerHTML = '<motion class="flex flex-wrap items-end justify-between gap-2"><div class="min-w-[10rem]"><label class="mb-1 block text-[11px] text-neutral-500">نوع پلن</label><select class="panel-plan-tier w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white">' + panelTierSelectHtml('bronze') + '</select></div><div class="min-w-[10rem] flex-1"><label class="mb-1 block text-[11px] text-neutral-500">قیمت پلن (تومان)</label><input type="text" class="panel-plan-price w-full rounded-lg border border-white/10 bg-black/40 px-2 py-2 text-sm text-white" placeholder="مثلاً ۱۲٬۹۰۰٬۰۰۰"></div><button type="button" class="btn-remove-panel-plan rounded-lg border border-rose-500/40 px-3 py-2 text-xs text-rose-200 hover:bg-rose-500/20">حذف پلن</button></motion><div><label class="mb-1 block text-[11px] text-neutral-500">خدمات پلن (هر ردیف یک خدمت)</label><div class="panel-plan-services-list space-y-2"></div><button type="button" class="btn-add-panel-svc mt-2 rounded-lg border border-white/15 px-3 py-1 text-xs text-neutral-300 hover:bg-white/5">افزودن خدمت</button></div>';
+      block.innerHTML = block.innerHTML.replace(/motion/g, 'div');
+      cont.appendChild(block);
+      var tierSel = block.querySelector('.panel-plan-tier');
+      if (tierSel) tierSel.addEventListener('change', function () { onPanelTierChange(block); });
+      block.querySelector('.panel-plan-price').addEventListener('input', updateCustomPanelPlansTotal);
+      addCustomPanelServiceRow(block);
+      onPanelTierChange(block);
+    }
+
+    function updateCustomPanelPlansTotal() {
+      var el = document.getElementById('custom-panel-plans-total');
+      if (!el) return;
+      var sum = 0;
+      document.querySelectorAll('.custom-panel-plan-block').forEach(function (block) {
+        var tier = block.querySelector('.panel-plan-tier');
+        if (tier && tier.value === 'exclusive') return;
+        var p = block.querySelector('.panel-plan-price');
+        sum += parsePriceAmount(p && p.value ? p.value : '');
+      });
+      el.textContent = formatToman(sum);
+    }
+
+    function hideSvcAcList(input) {
+      var ul = input && input.parentElement && input.parentElement.querySelector('.svc-ac-list');
+      if (ul) ul.classList.add('hidden');
+    }
+
+    function hideCustAcList() {
+      var ul = document.getElementById('custom-cust-ac-list');
+      if (ul) ul.classList.add('hidden');
+    }
+
+    function bindCustomerAutocomplete() {
+      var input = document.getElementById('custom-cust-name');
+      if (!input || input.dataset.custAcBound === '1') return;
+      input.dataset.custAcBound = '1';
+      var phoneEl = document.getElementById('custom-cust-phone');
+      var addrEl = document.getElementById('custom-cust-address');
+      input.addEventListener('input', function () {
+        input.dataset.customerId = '';
+        var q = (input.value || '').trim();
+        clearTimeout(custSearchTimer);
+        if (q.length < 1) { hideCustAcList(); return; }
+        custSearchTimer = setTimeout(function () {
+          fetch('{{ url_for("api_customers_search") }}?q=' + encodeURIComponent(q) + '&limit=12')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var ul = document.getElementById('custom-cust-ac-list');
+              if (!ul) return;
+              ul.innerHTML = '';
+              var items = (data && data.items) ? data.items : [];
+              if (!items.length) {
+                ul.classList.add('hidden');
+                return;
+              }
+              items.forEach(function (it) {
+                var li = document.createElement('li');
+                li.className = 'svc-ac-item';
+                var sub = [it.phone, it.address].filter(Boolean).join(' — ');
+                li.textContent = sub ? it.name + ' (' + sub + ')' : it.name;
+                li.dataset.id = it.id;
+                li.dataset.name = it.name;
+                li.dataset.phone = it.phone || '';
+                li.dataset.address = it.address || '';
+                li.addEventListener('mousedown', function (e) {
+                  e.preventDefault();
+                  input.value = it.name;
+                  input.dataset.customerId = it.id;
+                  if (phoneEl) phoneEl.value = it.phone || '';
+                  if (addrEl) addrEl.value = it.address || '';
+                  hideCustAcList();
+                });
+                ul.appendChild(li);
+              });
+              ul.classList.remove('hidden');
+            })
+            .catch(function () { hideCustAcList(); });
+        }, 220);
+      });
+      input.addEventListener('blur', function () {
+        setTimeout(hideCustAcList, 180);
+      });
+    }
+
+    function bindServiceAutocomplete(input) {
+      if (!input || input.dataset.acBound === '1') return;
+      input.dataset.acBound = '1';
+      input.addEventListener('input', function () {
+        input.dataset.serviceId = '';
+        var q = (input.value || '').trim();
+        clearTimeout(svcSearchTimer);
+        if (q.length < 1) { hideSvcAcList(input); return; }
+        svcSearchTimer = setTimeout(function () {
+          fetch('{{ url_for("api_services_search") }}?q=' + encodeURIComponent(q) + '&limit=12')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var ul = input.parentElement.querySelector('.svc-ac-list');
+              if (!ul) return;
+              ul.innerHTML = '';
+              var items = (data && data.items) ? data.items : [];
+              if (!items.length) {
+                ul.classList.add('hidden');
+                return;
+              }
+              items.forEach(function (it) {
+                var li = document.createElement('li');
+                li.className = 'svc-ac-item';
+                li.textContent = it.name;
+                li.dataset.id = it.id;
+                li.dataset.name = it.name;
+                li.addEventListener('mousedown', function (e) {
+                  e.preventDefault();
+                  input.value = it.name;
+                  input.dataset.serviceId = it.id;
+                  hideSvcAcList(input);
+                });
+                ul.appendChild(li);
+              });
+              ul.classList.remove('hidden');
+            })
+            .catch(function () { hideSvcAcList(input); });
+        }, 220);
+      });
+      input.addEventListener('blur', function () {
+        setTimeout(function () {
+          hideSvcAcList(input);
+          var nm = (input.value || '').trim();
+          if (!nm || input.dataset.serviceId) return;
+          fetch('{{ url_for("api_services_search") }}?q=' + encodeURIComponent(nm) + '&limit=5')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              var items = (data && data.items) ? data.items : [];
+              var exact = items.find(function (x) { return x.name === nm; });
+              if (exact) {
+                input.dataset.serviceId = exact.id;
+                return;
+              }
+              if (!confirm('خدمت «' + nm + '» در لیست نیست. به لیست خدمات اضافه شود؟')) return;
+              fetch('{{ url_for("api_services_quick") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: nm })
+              })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                  if (res.ok && res.id) input.dataset.serviceId = res.id;
+                });
+            });
+        }, 180);
+      });
+    }
+
+    function collectCustomPanelPlansForSubmit() {
+      var out = [];
+      document.querySelectorAll('.custom-panel-plan-block').forEach(function (block) {
+        var tierEl = block.querySelector('.panel-plan-tier');
+        var tier = tierEl ? tierEl.value : '';
+        var price = (block.querySelector('.panel-plan-price') && block.querySelector('.panel-plan-price').value || '').trim();
+        var services = [];
+        block.querySelectorAll('.panel-svc-input').forEach(function (inp) {
+          var nm = (inp.value || '').trim();
+          if (!nm) return;
+          services.push({ name: nm, service_id: (inp.dataset.serviceId || '').trim() });
+        });
+        if (!tier) return;
+        out.push({
+          tier: tier,
+          price: price,
+          negotiable: tier === 'exclusive',
+          services: services
+        });
+      });
+      return out;
     }
 
     function updateCustomSimpleLinesTotal() {
@@ -759,6 +1019,49 @@
     }
     var btnAddCustomSimple = document.getElementById('btn-custom-add-simple-line');
     if (btnAddCustomSimple) btnAddCustomSimple.addEventListener('click', addCustomSimpleLineRow);
+
+    bindCustomerAutocomplete();
+
+    var btnAddPanelPlan = document.getElementById('btn-custom-add-panel-plan');
+    if (btnAddPanelPlan) btnAddPanelPlan.addEventListener('click', addCustomPanelPlanBlock);
+    var panelPlansCont = document.getElementById('custom-panel-plans-container');
+    if (panelPlansCont) {
+      panelPlansCont.addEventListener('click', function (e) {
+        var planBlock = e.target.closest('.custom-panel-plan-block');
+        if (!planBlock) return;
+        if (e.target.closest('.btn-remove-panel-plan')) {
+          var cont = document.getElementById('custom-panel-plans-container');
+          if (cont && cont.children.length > 1) planBlock.remove();
+          else {
+            planBlock.querySelectorAll('input,select,textarea').forEach(function (el) {
+              if (el.classList.contains('panel-plan-tier')) el.value = 'bronze';
+              else if (!el.classList.contains('panel-svc-input')) el.value = '';
+              else { el.value = ''; el.dataset.serviceId = ''; }
+            });
+            var list = planBlock.querySelector('.panel-plan-services-list');
+            if (list) {
+              list.innerHTML = '';
+              addCustomPanelServiceRow(planBlock);
+            }
+          }
+          updateCustomPanelPlansTotal();
+          return;
+        }
+        if (e.target.closest('.btn-add-panel-svc')) {
+          addCustomPanelServiceRow(planBlock);
+          return;
+        }
+        if (e.target.closest('.btn-remove-panel-svc')) {
+          var svcRow = e.target.closest('.panel-svc-row');
+          var sl = planBlock.querySelector('.panel-plan-services-list');
+          if (sl && sl.children.length > 1 && svcRow) svcRow.remove();
+          else if (svcRow) {
+            var inp = svcRow.querySelector('.panel-svc-input');
+            if (inp) { inp.value = ''; inp.dataset.serviceId = ''; }
+          }
+        }
+      });
+    }
 
     document.querySelectorAll('.order-tab').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -918,7 +1221,29 @@
       };
       var invType = getCustomInvoiceType();
       var body;
-      if (invType === 'simple') {
+      if (invType === 'panel') {
+        var panelPlans = collectCustomPanelPlansForSubmit();
+        if (!panelPlans.length) {
+          if (msg) msg.textContent = 'حداقل یک پلن اضافه کنید.';
+          return;
+        }
+        for (var pi = 0; pi < panelPlans.length; pi += 1) {
+          var pl = panelPlans[pi];
+          if (!pl.services || !pl.services.length) {
+            if (msg) msg.textContent = 'برای پلن ' + (pi + 1) + ' حداقل یک خدمت وارد کنید.';
+            return;
+          }
+          if (pl.tier !== 'exclusive' && !parsePriceAmount(pl.price || '')) {
+            if (msg) msg.textContent = 'برای پلن ' + (pi + 1) + ' قیمت معتبر وارد کنید.';
+            return;
+          }
+        }
+        body = {
+          invoice_type: 'panel',
+          panel_plans: panelPlans,
+          customer: customerPayload
+        };
+      } else if (invType === 'simple') {
         var simpleLines = collectCustomSimpleLinesForSubmit();
         if (!simpleLines.length) {
           if (msg) msg.textContent = 'حداقل یک ردیف خدمت با نام پر کنید.';
@@ -935,7 +1260,7 @@
           simple_lines: simpleLines,
           customer: customerPayload
         };
-      } else {
+      } else if (invType === 'roadmap') {
         var blocks = document.querySelectorAll('.custom-step-block');
         if (!blocks.length) {
           if (msg) msg.textContent = 'ابتدا تعداد مراحل را اعمال کنید.';
@@ -980,6 +1305,8 @@
             document.getElementById('custom-cust-address').value = '';
             var csl = document.getElementById('custom-simple-lines-rows');
             if (csl) csl.innerHTML = '';
+            var ppc = document.getElementById('custom-panel-plans-container');
+            if (ppc) ppc.innerHTML = '';
             closeCustomOrderModal();
             openPostOrderModal(res.body.order_id, res.body.source || 'custom-order', res.body.invoice_type || 'current');
           } else if (msg) {
@@ -989,6 +1316,10 @@
             else if (res.body && res.body.error === 'no_simple_lines') msg.textContent = 'حداقل یک ردیف فاکتور ساده لازم است.';
             else if (res.body && res.body.error === 'simple_line_name') msg.textContent = 'نام هر ردیف الزامی است.';
             else if (res.body && res.body.error === 'step_title_or_name') msg.textContent = 'در هر مرحله عنوان یا نام را پر کنید.';
+            else if (res.body && res.body.error === 'no_panel_plans') msg.textContent = 'حداقل یک پلن لازم است.';
+            else if (res.body && res.body.error === 'panel_no_services') msg.textContent = 'هر پلن باید حداقل یک خدمت داشته باشد.';
+            else if (res.body && res.body.error === 'panel_price') msg.textContent = 'قیمت پلن معتبر نیست.';
+            else if (res.body && res.body.error === 'bad_panel_tier') msg.textContent = 'نوع پلن نامعتبر است.';
           }
         })
         .catch(function () {
