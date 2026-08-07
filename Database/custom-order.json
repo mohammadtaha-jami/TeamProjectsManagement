@@ -1,845 +1,219 @@
 [
   {
-    "id": "69502488-598a-4f2b-abf6-dc47758f7565",
-    "created_at": "2026-05-14T18:57:07",
-    "customer_id": "f34d2fff-f6c9-4a5c-aa6d-fb6bc8729720",
+    "id": "g7000001-0000-4000-8000-000000000001",
+    "created_at": "2026-07-31T17:45:07",
+    "customer_id": "e5000001-0000-4000-8000-000000000001",
     "customer": {
-      "name": "محمد",
-      "phone": "09355662",
-      "address": "مشهد مشهد مشده"
+      "name": "علی محمدی",
+      "phone": "09121234567",
+      "address": "تهران"
     },
     "steps": [
       {
-        "title": "مرحله اول",
-        "name": "طراحی سایت",
+        "title": "فاز اول",
+        "name": "طراحی UI",
         "description_lines": [
-          "طراحی سایت وردپرسی",
-          "طراحی سایت کد نویسی"
+          "وایرفریم",
+          "طراحی صفحات اصلی"
         ],
-        "price": "3000000",
-        "price_amount": 3000000
+        "price": "15000000",
+        "price_amount": 15000000
       },
       {
-        "title": "مرحله دو",
-        "name": "تبلیغات",
+        "title": "فاز دوم",
+        "name": "توسعه فرانت",
         "description_lines": [
-          "تبلیغات پیامکی",
-          "تلیغات کلامی"
+          "React",
+          "اتصال API"
         ],
-        "price": "300000",
-        "price_amount": 300000
+        "price": "25000000",
+        "price_amount": 25000000
       }
     ],
-    "total_price": 3300000,
+    "total_price": 40000000,
     "invoice_type": "roadmap"
   },
   {
-    "id": "57acd204-94db-4648-b27c-76cc8e52a693",
-    "created_at": "2026-05-14T19:16:07",
-    "customer_id": "487055df-24f8-4689-8c6e-6c09c46d2f82",
+    "id": "g7000002-0000-4000-8000-000000000002",
+    "created_at": "2026-08-01T17:45:07",
+    "customer_id": "e5000002-0000-4000-8000-000000000002",
     "customer": {
-      "name": "خانم بخشی",
-      "phone": "093358654",
-      "address": "مشهد تهران اضفهان"
+      "name": "سارا احمدی",
+      "phone": "09351234567",
+      "address": "مشهد"
     },
-    "steps": [
+    "steps": [],
+    "total_price": 8500000,
+    "invoice_type": "simple",
+    "simple_lines": [
       {
-        "title": "مرحله اول",
-        "name": "طراحی سایت",
-        "description_lines": [
-          "طراحی سایت 1",
-          "طراحی سایت 2"
-        ],
-        "price": "500000",
-        "price_amount": 500000
+        "name": "هاست سالانه",
+        "price": "2500000",
+        "unit_amount": 2500000,
+        "quantity": 1,
+        "description": "هاست پرسرعت",
+        "line_total": 2500000
+      },
+      {
+        "name": "دامنه ir.",
+        "price": "600000",
+        "unit_amount": 600000,
+        "quantity": 1,
+        "description": "",
+        "line_total": 600000
+      },
+      {
+        "name": "SSL",
+        "price": "5400000",
+        "unit_amount": 1800000,
+        "quantity": 3,
+        "description": "گواهی ۳ ساله",
+        "line_total": 5400000
       }
-    ],
-    "total_price": 500000,
-    "invoice_type": "simple"
+    ]
   },
   {
-    "id": "42770e62-d86b-467e-b8b8-f4b91a1174cf",
-    "created_at": "2026-05-14T19:17:27",
-    "customer_id": "57fb214d-1c67-43da-a543-cfe7d3959e1e",
+    "id": "g7000003-0000-4000-8000-000000000003",
+    "created_at": "2026-08-03T17:45:07",
+    "customer_id": "e5000003-0000-4000-8000-000000000003",
     "customer": {
-      "name": "طاخا",
-      "phone": "09336535",
-      "address": "مسهد مبلام مای"
+      "name": "رضا کریمی",
+      "phone": "09171234567",
+      "address": "اصفهان"
+    },
+    "steps": [],
+    "total_price": 95000000,
+    "invoice_type": "panel",
+    "panel_plans": [
+      {
+        "tier": "economic",
+        "price": "18000000",
+        "price_amount": 18000000,
+        "negotiable": false,
+        "services": [
+          {
+            "name": "سایت وردپرسی ۵ صفحه",
+            "service_id": "c3000001-0000-4000-8000-000000000001"
+          },
+          {
+            "name": "ریسپانسیو",
+            "service_id": ""
+          },
+          {
+            "name": "فرم تماس",
+            "service_id": ""
+          }
+        ]
+      },
+      {
+        "tier": "gold",
+        "price": "55000000",
+        "price_amount": 55000000,
+        "negotiable": false,
+        "services": [
+          {
+            "name": "طراحی UI/UX",
+            "service_id": "c3000002-0000-4000-8000-000000000002"
+          },
+          {
+            "name": "React SPA",
+            "service_id": ""
+          },
+          {
+            "name": "سئو پایه",
+            "service_id": "c3000003-0000-4000-8000-000000000003"
+          },
+          {
+            "name": "پشتیبانی ۶ ماه",
+            "service_id": "c3000005-0000-4000-8000-000000000005"
+          }
+        ]
+      },
+      {
+        "tier": "exclusive",
+        "price": "",
+        "price_amount": 0,
+        "negotiable": true,
+        "services": [
+          {
+            "name": "تیم اختصاصی",
+            "service_id": ""
+          },
+          {
+            "name": "معماری Enterprise",
+            "service_id": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "g7000004-0000-4000-8000-000000000004",
+    "created_at": "2026-08-05T17:45:07",
+    "customer_id": "e5000004-0000-4000-8000-000000000004",
+    "customer": {
+      "name": "مریم حسینی",
+      "phone": "09381234567",
+      "address": "شیراز"
     },
     "steps": [
       {
-        "title": "مرحله یک",
-        "name": "تست 1",
+        "title": "مرحله ۱",
+        "name": "تحقیق برند",
         "description_lines": [
-          "تست",
-          "تست",
-          "تست"
+          "مصاحبه با ذینفعان",
+          "تحلیل رقبا"
         ],
         "price": "5000000",
         "price_amount": 5000000
       },
       {
-        "title": "مرحله دو",
-        "name": "تست 2",
+        "title": "مرحله ۲",
+        "name": "طراحی هویت",
         "description_lines": [
-          "تست تست تست",
-          "تست تست",
-          "تست"
+          "لوگو",
+          "پالت رنگ",
+          "تایپوگرافی"
         ],
-        "price": "50000000",
-        "price_amount": 50000000
+        "price": "12000000",
+        "price_amount": 12000000
       }
     ],
-    "total_price": 55000000,
-    "invoice_type": "roadmap"
+    "total_price": 17000000,
+    "invoice_type": "current"
   },
   {
-    "id": "afd20585-d26a-48c6-a565-8b119e576d01",
-    "created_at": "2026-05-14T19:37:42",
-    "customer_id": "65cb0e66-9dab-4562-b7b4-0bb46181695b",
+    "id": "g7000005-0000-4000-8000-000000000005",
+    "created_at": "2026-08-07T17:45:07",
+    "customer_id": "e5000005-0000-4000-8000-000000000005",
     "customer": {
-      "name": "تستی",
-      "phone": "09355455",
-      "address": "مشهد تهران"
-    },
-    "steps": [],
-    "total_price": 80000,
-    "invoice_type": "simple",
-    "simple_lines": [
-      {
-        "name": "افزونه",
-        "price": "20000",
-        "unit_amount": 20000,
-        "quantity": 1,
-        "description": "افزونه بوده",
-        "line_total": 20000
-      },
-      {
-        "name": "افزونه 2",
-        "price": "30000",
-        "unit_amount": 30000,
-        "quantity": 2,
-        "description": "تستی",
-        "line_total": 60000
-      }
-    ]
-  },
-  {
-    "id": "aa765b0d-aa8c-400b-abab-355df8d46c8d",
-    "created_at": "2026-05-14T19:39:36",
-    "customer_id": "164af32a-352d-4e25-a440-5604211a69a5",
-    "customer": {
-      "name": "طاها",
-      "phone": "0933333",
-      "address": "مشهد تهران"
-    },
-    "steps": [],
-    "total_price": 430000,
-    "invoice_type": "simple",
-    "simple_lines": [
-      {
-        "name": "افزونه",
-        "price": "100000",
-        "unit_amount": 100000,
-        "quantity": 2,
-        "description": "تستی",
-        "line_total": 200000
-      },
-      {
-        "name": "زرین پال",
-        "price": "50000",
-        "unit_amount": 50000,
-        "quantity": 3,
-        "description": "تستی",
-        "line_total": 150000
-      },
-      {
-        "name": "محسن",
-        "price": "80000",
-        "unit_amount": 80000,
-        "quantity": 1,
-        "description": "تستی",
-        "line_total": 80000
-      }
-    ]
-  },
-  {
-    "id": "4b93dd80-fff1-4df6-9881-8453d0b8648d",
-    "created_at": "2026-05-14T19:44:09",
-    "customer_id": "2e2b2dec-97f6-4b66-8961-ab5a0eaada00",
-    "customer": {
-      "name": "خانم بخشی",
-      "phone": "09363653",
-      "address": "مشهد تهران اصفهان"
+      "name": "امیر رضایی",
+      "phone": "09211234567",
+      "address": "تبریز"
     },
     "steps": [
       {
-        "title": "تستی 1",
-        "name": "طراحی سایت",
+        "title": "ماه اول",
+        "name": "تولید محتوا",
         "description_lines": [
-          "تست 1",
-          "تست 2",
-          "تست 3",
-          "تست 4"
+          "۱۰ مقاله وبلاگ",
+          "۵ پست اینستاگرام"
         ],
-        "price": "262315",
-        "price_amount": 262315
+        "price": "12000000",
+        "price_amount": 12000000
       },
       {
-        "title": "تستی 2",
-        "name": "افزونه",
+        "title": "ماه دوم",
+        "name": "سئو محتوا",
         "description_lines": [
-          "تست 1",
-          "تست 2",
-          "تست 3",
-          "تست 4"
+          "بهینه‌سازی مقالات",
+          "لینک‌سازی داخلی"
         ],
-        "price": "6513215313",
-        "price_amount": 6513215313
-      },
-      {
-        "title": "تستی3",
-        "name": "تبلیغات",
-        "description_lines": [
-          "تست 1",
-          "تست 2",
-          "تست 3",
-          "تست 4"
-        ],
-        "price": "50000",
-        "price_amount": 50000
-      },
-      {
-        "title": "تستی 4",
-        "name": "طاها",
-        "description_lines": [
-          "تست 1",
-          "تست 2",
-          "تست 3",
-          "تست 4"
-        ],
-        "price": "50000000",
-        "price_amount": 50000000
-      },
-      {
-        "title": "تستی 5",
-        "name": "برندیگ",
-        "description_lines": [
-          "تست 1",
-          "تست 2",
-          "تست 3",
-          "تست 4"
-        ],
-        "price": "5000082598",
-        "price_amount": 5000082598
+        "price": "8000000",
+        "price_amount": 8000000
       }
     ],
-    "total_price": 11563610226,
+    "total_price": 20000000,
     "invoice_type": "roadmap"
-  },
-  {
-    "id": "09d4d6ff-136d-49d8-a91f-e49a6f5af07d",
-    "created_at": "2026-05-16T16:31:36",
-    "customer_id": "df6deb30-3e23-4af3-a3b2-d4fcfa79a529",
-    "customer": {
-      "name": "خانم بخشی",
-      "phone": "09356545",
-      "address": "مشهد تهران"
-    },
-    "steps": [],
-    "total_price": 2001000000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "economic",
-        "price": "1000000",
-        "price_amount": 1000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت با قالب اماده",
-            "service_id": "1f708157-5665-4a6f-8fc6-5311fce82ecc"
-          },
-          {
-            "name": "طراحی سایت تستی",
-            "service_id": "95e9ec26-35e8-4cd8-b927-af99c0903b84"
-          },
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          }
-        ]
-      },
-      {
-        "tier": "diamond",
-        "price": "1500000000",
-        "price_amount": 1500000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "تدوین و اجرای استراتژی جامع سئو (On-page + Off-page + Technical)",
-            "service_id": "bd5e790e-ec66-4a97-a78a-bddca7968218"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          }
-        ]
-      },
-      {
-        "tier": "silver",
-        "price": "500000000",
-        "price_amount": 500000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "سایت شرکتی (نیمه‌اختصاصی)",
-            "service_id": "e01dd4ac-3c2c-441c-94bd-abe802ba8a07"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "a1c9e638-0afa-43dd-aff3-204fd3650f51",
-    "created_at": "2026-05-16T17:11:11",
-    "customer_id": "431fb4b9-11f7-4d80-ae71-0a7d2cdf6613",
-    "customer": {
-      "name": "خانم بخشی",
-      "phone": "09356452",
-      "address": "مشهد تهران"
-    },
-    "steps": [],
-    "total_price": 6000000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "economic",
-        "price": "1000000",
-        "price_amount": 1000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "طراحی سایت رزومه / رزرواسون",
-            "service_id": "cccedc12-6b5c-417a-a9b2-700230215155"
-          }
-        ]
-      },
-      {
-        "tier": "silver",
-        "price": "2000000",
-        "price_amount": 2000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "پیاده‌سازی سئو داخلی پایه (عنوان‌ها، متا، ساختار هدینگ)",
-            "service_id": "198a88f9-6808-4a0e-bda4-2169bfd779dc"
-          },
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "سئو تکنیکال + داخلی کامل",
-            "service_id": "b8e7d499-5a83-4650-982e-399d3bda2d0d"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "3000000",
-        "price_amount": 3000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "ساخت پلتفرم هوشمند کافه با باشگاه مشتریان",
-            "service_id": "3e855e13-24f1-4278-a452-f9393ddc5323"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "234c0b7a-878a-4d7d-91cb-9f678c137ad1",
-    "created_at": "2026-05-16T07:56:47",
-    "customer_id": "9da43ce5-6483-43ce-b7d0-a35dcd20f723",
-    "customer": {
-      "name": "خانم بخشی  محترم",
-      "phone": "0936556536",
-      "address": "تست"
-    },
-    "steps": [],
-    "total_price": 1200000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "economic",
-        "price": "200000",
-        "price_amount": 200000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "لندینگ پیج (طراحی اختصاصی)",
-            "service_id": "474fcb33-3d80-40f2-a4ba-b7e52c570d83"
-          }
-        ]
-      },
-      {
-        "tier": "bronze",
-        "price": "500000",
-        "price_amount": 500000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "تولید ۴ مقاله سئو شده بر اساس اصول On-page",
-            "service_id": "d405e2f0-bb18-45a5-8ce6-8f43a711fe69"
-          },
-          {
-            "name": "تولید ۸ مقاله سئو شده هدفمند",
-            "service_id": "fb45fff7-4cb7-4d11-b480-22ec2766d1aa"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "500000",
-        "price_amount": 500000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "02578300-8295-418d-a273-e27cacf10fd2",
-    "created_at": "2026-05-16T08:05:56",
-    "customer_id": "a4f831bb-ce3f-4868-982a-cceef1fb3c9f",
-    "customer": {
-      "name": "خانم بخشی  محترم",
-      "phone": "0936556536",
-      "address": "تست"
-    },
-    "steps": [],
-    "total_price": 5520000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "silver",
-        "price": "20000",
-        "price_amount": 20000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          }
-        ]
-      },
-      {
-        "tier": "economic",
-        "price": "500000",
-        "price_amount": 500000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "تولید ۴ مقاله سئو شده بر اساس اصول On-page",
-            "service_id": "d405e2f0-bb18-45a5-8ce6-8f43a711fe69"
-          },
-          {
-            "name": "ریسپانسیو (موبایل و تبلت)",
-            "service_id": "c1f2286f-e6ec-431f-b33e-f7e4df1b3a0d"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "5000000",
-        "price_amount": 5000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "35d8f0d2-cd02-4aa3-a7fb-97b51c3795d8",
-    "created_at": "2026-05-16T08:12:57",
-    "customer_id": "84bd3f42-5788-4939-a1d1-d727c146ffb6",
-    "customer": {
-      "name": "خانم بخشی",
-      "phone": "09356452",
-      "address": "مشهد تهران"
-    },
-    "steps": [],
-    "total_price": 1032200000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "economic",
-        "price": "200000",
-        "price_amount": 200000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "سایت شرکتی (نیمه‌اختصاصی)",
-            "service_id": "e01dd4ac-3c2c-441c-94bd-abe802ba8a07"
-          },
-          {
-            "name": "طراحی ریسپانسیو برای موبایل و تبلت",
-            "service_id": "e13568a6-1faa-42c1-9834-74de45251ad3"
-          }
-        ]
-      },
-      {
-        "tier": "silver",
-        "price": "50000000",
-        "price_amount": 50000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "سئو داخلی اولیه (On-page)",
-            "service_id": "80c69b89-e21f-410c-9e32-0760e866d13f"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "طراحی سایت رزومه / رزرواسون",
-            "service_id": "cccedc12-6b5c-417a-a9b2-700230215155"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "982000000",
-        "price_amount": 982000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "ساخت پلتفرم هوشمند کافه با باشگاه مشتریان",
-            "service_id": "3e855e13-24f1-4278-a452-f9393ddc5323"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "3c4ea918-a937-4004-b83b-22033d9d168c",
-    "created_at": "2026-05-16T08:39:52",
-    "customer_id": "36d6ba7b-b92a-48e1-89ff-0ad9f05927b5",
-    "customer": {
-      "name": "خانم بخشی  محترم",
-      "phone": "0936556536",
-      "address": "تست"
-    },
-    "steps": [],
-    "total_price": 4320000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "silver",
-        "price": "2000000",
-        "price_amount": 2000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          }
-        ]
-      },
-      {
-        "tier": "economic",
-        "price": "2000000",
-        "price_amount": 2000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت رزرواسون اختصاصی",
-            "service_id": "a53d12d9-5496-4bfe-a65f-ac13daca6d9f"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "ساخت پلتفرم هوشمند کافه با باشگاه مشتریان",
-            "service_id": "3e855e13-24f1-4278-a452-f9393ddc5323"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "320000",
-        "price_amount": 320000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "سایت منوی دیجیتال و معرفی کافه (قالب)",
-            "service_id": "e411c07b-fc7b-47a4-a905-a983ec3aaf5a"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ce455eac-0139-492c-930f-64eee3a38257",
-    "created_at": "2026-05-16T09:02:39",
-    "customer_id": "3688ffa2-a8bc-40dc-aa96-8938f876cdc8",
-    "customer": {
-      "name": "خانم بخشی  محترم",
-      "phone": "0936556536",
-      "address": "تست"
-    },
-    "steps": [],
-    "total_price": 5068750000,
-    "invoice_type": "panel",
-    "panel_plans": [
-      {
-        "tier": "bronze",
-        "price": "5000000000",
-        "price_amount": 5000000000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "بهینه‌سازی سرعت (Core Web Vitals پایه)",
-            "service_id": "95ef98bf-e285-45b1-9279-ff2094e1c452"
-          },
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "طراحی سایت رزرواسون اختصاصی",
-            "service_id": "a53d12d9-5496-4bfe-a65f-ac13daca6d9f"
-          },
-          {
-            "name": "طراحی سایت رزرواسون اختصاصی",
-            "service_id": "a53d12d9-5496-4bfe-a65f-ac13daca6d9f"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "سایت منوی دیجیتال و معرفی کافه (قالب)",
-            "service_id": "e411c07b-fc7b-47a4-a905-a983ec3aaf5a"
-          }
-        ]
-      },
-      {
-        "tier": "diamond",
-        "price": "62250000",
-        "price_amount": 62250000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (با قالب آماده)",
-            "service_id": "0aa4d95b-3d32-429e-8a40-8153a59bd678"
-          },
-          {
-            "name": "سایت شرکتی (قالبی)",
-            "service_id": "57eb9283-0610-4c47-b711-4edbb439df8c"
-          },
-          {
-            "name": "طراحی سایت رزرواسون اختصاصی",
-            "service_id": "a53d12d9-5496-4bfe-a65f-ac13daca6d9f"
-          },
-          {
-            "name": "سایت منوی دیجیتال و معرفی کافه (قالب)",
-            "service_id": "e411c07b-fc7b-47a4-a905-a983ec3aaf5a"
-          },
-          {
-            "name": "سایت شرکتی (نیمه‌اختصاصی)",
-            "service_id": "e01dd4ac-3c2c-441c-94bd-abe802ba8a07"
-          }
-        ]
-      },
-      {
-        "tier": "gold",
-        "price": "6500000",
-        "price_amount": 6500000,
-        "negotiable": false,
-        "services": [
-          {
-            "name": "طراحی سایت فروشگاهی",
-            "service_id": "3670cc98-439a-447d-bf2d-5e367ef65253"
-          },
-          {
-            "name": "طراحی سایت شخصی / رزومه (طراحی اختصاصی)",
-            "service_id": "62d267d2-e890-4a6b-bb7f-88353fd0cdca"
-          },
-          {
-            "name": "سایت منوی دیجیتال و معرفی کافه (قالب)",
-            "service_id": "e411c07b-fc7b-47a4-a905-a983ec3aaf5a"
-          },
-          {
-            "name": "سایت سفارش آنلاین و رزرو کافه",
-            "service_id": "177b320d-667c-4426-aba2-f4a4ecca7df2"
-          },
-          {
-            "name": "طراحی سایت رزرواسون نیمه اختصاصی",
-            "service_id": "8f15f60e-19bb-48d3-be13-2808381a1c7c"
-          },
-          {
-            "name": "ساخت پلتفرم هوشمند کافه با باشگاه مشتریان",
-            "service_id": "3e855e13-24f1-4278-a452-f9393ddc5323"
-          }
-        ]
-      }
-    ]
   }
 ]

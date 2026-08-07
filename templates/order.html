@@ -36,8 +36,151 @@
     .order-svc-card:hover {
       transform: translateY(-2px);
     }
+    /* ── نوار دسته‌بندی ── */
+    .order-cat-nav {
+      position: sticky;
+      top: 0.75rem;
+      z-index: 30;
+      margin-bottom: 1.25rem;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.96) 100%);
+      box-shadow:
+        0 12px 40px -8px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+    .order-cat-nav::before {
+      content: "";
+      display: block;
+      height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #a855f7, #ec4899, #f59e0b);
+      opacity: 0.85;
+    }
+    .order-cat-nav-inner {
+      padding: 0.875rem 1rem 1rem;
+    }
+    .order-cat-nav-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.625rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .order-cat-nav-header-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(168, 85, 247, 0.35));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.75rem;
+      color: #bfdbfe;
+    }
+    .order-cat-nav-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #f5f5f5;
+      letter-spacing: -0.01em;
+    }
+    .order-cat-nav-hint {
+      margin-right: auto;
+      font-size: 0.7rem;
+      color: rgba(163, 163, 163, 0.85);
+    }
+    .order-cat-nav-scroll {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.125rem 0.125rem 0.375rem;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+      mask-image: linear-gradient(to left, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+      -webkit-mask-image: linear-gradient(to left, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+    }
+    .order-cat-nav-scroll::-webkit-scrollbar {
+      height: 4px;
+    }
+    .order-cat-nav-scroll::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .order-tab {
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      position: relative;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.55rem 1.15rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #d4d4d4;
+      white-space: nowrap;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .order-tab::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #60a5fa, #c084fc);
+      transform: translateX(-50%);
+      transition: width 0.22s ease;
+    }
+    .order-tab:hover {
+      background: rgba(255, 255, 255, 0.11);
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #fff;
+      transform: translateY(-1px);
+    }
     .order-tab-active {
-      box-shadow: 0 4px 20px -4px rgba(255, 255, 255, 0.15);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.42) 0%, rgba(124, 58, 237, 0.38) 100%);
+      border-color: rgba(147, 197, 253, 0.55);
+      color: #fff;
+      box-shadow:
+        0 6px 22px -4px rgba(59, 130, 246, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+    .order-tab-active::after {
+      width: 60%;
+    }
+    .order-tab-plans {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(245, 158, 11, 0.14);
+      color: #fde68a;
+    }
+    .order-tab-plans:hover {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: rgba(252, 211, 77, 0.55);
+      color: #fff;
+    }
+    .order-tab-plans.order-tab-active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.48) 0%, rgba(234, 88, 12, 0.38) 100%);
+      border-color: rgba(252, 211, 77, 0.65);
+      box-shadow:
+        0 6px 22px -4px rgba(245, 158, 11, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .order-tab-plans.order-tab-active::after {
+      background: linear-gradient(90deg, #fbbf24, #f97316);
+    }
+    @media (max-width: 640px) {
+      .order-cat-nav-hint { display: none; }
+      .order-tab { padding: 0.5rem 0.95rem; font-size: 0.78rem; }
     }
     .plan-neon-card {
       transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -113,14 +256,21 @@
       </ul>
     </section>
 
-    <section class="mb-4 rounded-2xl border border-white/10 bg-black/25 p-3 backdrop-blur-sm">
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
-        {% for og in order_category_groups %}
-        <button type="button" class="order-tab shrink-0 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:bg-white/10" data-target="cat-{{ og.parent.id }}">{{ og.parent.name }}</button>
-        {% endfor %}
-        <button type="button" class="order-tab shrink-0 rounded-full border border-amber-400/40 bg-amber-500/15 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/25" data-target="plans-tab">پلن‌ها</button>
+    <nav class="order-cat-nav" aria-label="دسته‌بندی خدمات">
+      <div class="order-cat-nav-inner">
+        <div class="order-cat-nav-header">
+          <span class="order-cat-nav-header-icon" aria-hidden="true">☰</span>
+          <span class="order-cat-nav-title">دسته‌بندی خدمات</span>
+          <span class="order-cat-nav-hint">برای مشاهده خدمات، یک دسته را انتخاب کنید</span>
+        </div>
+        <div class="order-cat-nav-scroll">
+          {% for og in order_category_groups %}
+          <button type="button" class="order-tab" data-target="cat-{{ og.parent.id }}">{{ og.parent.name }}</button>
+          {% endfor %}
+          <button type="button" class="order-tab order-tab-plans" data-target="plans-tab">پلن‌ها</button>
+        </div>
       </div>
-    </section>
+    </nav>
 
     {% for og in order_category_groups %}
     <section id="cat-{{ og.parent.id }}" class="tab-panel hidden space-y-6 rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm">
@@ -1070,9 +1220,9 @@
           panel.classList.toggle('hidden', panel.id !== target);
         });
         document.querySelectorAll('.order-tab').forEach(function (tab) {
-          tab.classList.remove('order-tab-active', 'ring-2', 'ring-white/30');
+          tab.classList.remove('order-tab-active');
         });
-        btn.classList.add('order-tab-active', 'ring-2', 'ring-white/30');
+        btn.classList.add('order-tab-active');
       });
     });
 
