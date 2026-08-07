@@ -1,5 +1,5 @@
 # استفاده از ایمیج رسمی پایتون به همراه Playwright
-FROM mcr.microsoft.com/playwright/python:v1.40.0-focal
+FROM mcr.microsoft.com/playwright/python:v1.45.0-jammy
 
 # تنظیم پوشه کاری
 WORKDIR /app
